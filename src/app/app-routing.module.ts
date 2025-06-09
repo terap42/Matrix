@@ -18,6 +18,11 @@ const routes: Routes = [
     loadChildren: () => import('./features/tabs-layout/tabs-layout.module').then(m => m.TabsLayoutPageModule)
   }
    ,
+  
+  {
+    path: 'admin',
+    loadChildren: () => import('./Admin/base-layout-admin/base-layout-admin.module').then( m => m.BaseLayoutAdminPageModule)
+  },
   {
     path: 'login',
     loadChildren: () => import('./features/auth/login/login.module').then( m => m.LoginPageModule)
@@ -27,16 +32,7 @@ const routes: Routes = [
     path: 'register',
     loadChildren: () => import('./features/auth/register/register.module').then( m => m.RegisterPageModule)
   },
-  {
-    path: 'admin',
-    loadChildren: () => import('./Admin/base-layout-admin/base-layout-admin.module').then( m => m.BaseLayoutAdminPageModule)
-  },
  
-  
-  
- 
- 
-
   
  
 ];

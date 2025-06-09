@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { trigger, state, style, transition, animate, stagger, query } from '@angular/animations';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 
 interface Feature {
   icon: string;
@@ -56,7 +56,6 @@ interface AppFeature {
         animate('700ms ease-out')
       ])
     ]),
-    // Animation stagger corrigée
     trigger('staggerAnimation', [
       state('visible', style({ opacity: 1, transform: 'translateY(0)' })),
       state('hidden', style({ opacity: 0, transform: 'translateY(20px)' })),
@@ -192,67 +191,78 @@ export class HomePage implements OnInit {
   constructor(private router: Router) { }
 
   ngOnInit() {
-    // Initialisation du composant
     this.initializeAnimations();
   }
 
-  // Méthodes de navigation
-  navigateToLogin() {
+  // Méthodes de navigation avec gestion d'erreur améliorée
+  async navigateToLogin() {
     console.log('Navigation vers login');
-    this.router.navigate(['/login']).catch(err => {
+    try {
+      await this.router.navigate(['/login']);
+      this.closeMobileMenu();
+    } catch (err) {
       console.error('Erreur de navigation vers login:', err);
-    });
-    this.closeMobileMenu();
-  }
-
-  navigateToRegister(userType?: string) {
-    console.log('Navigation vers register avec type:', userType);
-    if (userType) {
-      this.router.navigate(['/register'], { queryParams: { type: userType } }).catch(err => {
-        console.error('Erreur de navigation vers register:', err);
-      });
-    } else {
-      this.router.navigate(['/register']).catch(err => {
-        console.error('Erreur de navigation vers register:', err);
-      });
     }
-    this.closeMobileMenu();
   }
 
-  navigateToFreelances() {
+  async navigateToRegister(userType?: string) {
+    console.log('Navigation vers register avec type:', userType);
+    try {
+      if (userType) {
+        await this.router.navigate(['/register'], { queryParams: { type: userType } });
+      } else {
+        await this.router.navigate(['/register']);
+      }
+      this.closeMobileMenu();
+    } catch (err) {
+      console.error('Erreur de navigation vers register:', err);
+    }
+  }
+
+  async navigateToFreelances() {
     console.log('Navigation vers freelances');
-    this.router.navigate(['/freelances']).catch(err => {
+    try {
+      await this.router.navigate(['/freelances']);
+      this.closeMobileMenu();
+    } catch (err) {
       console.error('Erreur de navigation vers freelances:', err);
-    });
-    this.closeMobileMenu();
+    }
   }
 
-  navigateToFreelancesByCategory(categorySlug: string) {
+  async navigateToFreelancesByCategory(categorySlug: string) {
     console.log('Navigation vers freelances par catégorie:', categorySlug);
-    this.router.navigate(['/freelances'], { queryParams: { category: categorySlug } }).catch(err => {
+    try {
+      await this.router.navigate(['/freelances'], { queryParams: { category: categorySlug } });
+    } catch (err) {
       console.error('Erreur de navigation vers freelances par catégorie:', err);
-    });
+    }
   }
 
-  navigateToSupport() {
+  async navigateToSupport() {
     console.log('Navigation vers support');
-    this.router.navigate(['/support']).catch(err => {
+    try {
+      await this.router.navigate(['/support']);
+    } catch (err) {
       console.error('Erreur de navigation vers support:', err);
-    });
+    }
   }
 
-  navigateToAbout() {
+  async navigateToAbout() {
     console.log('Navigation vers about');
-    this.router.navigate(['/about']).catch(err => {
+    try {
+      await this.router.navigate(['/about']);
+    } catch (err) {
       console.error('Erreur de navigation vers about:', err);
-    });
+    }
   }
 
-  navigateToLegal() {
+  async navigateToLegal() {
     console.log('Navigation vers legal');
-    this.router.navigate(['/legal']).catch(err => {
+    try {
+      await this.router.navigate(['/legal']);
+    } catch (err) {
       console.error('Erreur de navigation vers legal:', err);
-    });
+    }
   }
 
   // Gestion du menu mobile
@@ -305,23 +315,20 @@ export class HomePage implements OnInit {
   // Gestion des événements de clic
   onFeatureClick(feature: Feature) {
     console.log('Feature clicked:', feature.title);
-    // Logique supplémentaire si nécessaire
   }
 
   onCategoryClick(category: FreelanceCategory) {
     this.navigateToFreelancesByCategory(category.slug);
   }
 
-  // Méthodes pour le tracking/analytics (optionnel)
+  // Méthodes pour le tracking/analytics
   trackEvent(eventName: string, properties?: any) {
     console.log('Event tracked:', eventName, properties);
-    // Intégration avec un service d'analytics si nécessaire
   }
 
-  // Gestion du scroll pour les animations (optionnel)
+  // Gestion du scroll pour les animations
   onScroll(event: any) {
-    // Logique pour déclencher des animations au scroll
     const scrollTop = event.target.scrollTop;
-    // Implémentation selon les besoins
+    // Logique d'animation au scroll si nécessaire
   }
 }
