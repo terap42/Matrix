@@ -1,0 +1,484 @@
+<!-- Page principale de modération des contenus -->
+<div class="min-h-screen bg-gray-50 p-6">
+  
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-3xl font-bold text-gray-900">Modération des Contenus</h1>
+      <button 
+        (click)="openAddModal()"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm">
+        <span class="text-xl">+</span>
+        Nouveau signalement
+      </button>
+    </div>
+    
+    <!-- Statistiques rapides -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Total</p>
+            <p class="text-2xl font-bold text-gray-900">{{stats.total}}</p>
+          </div>
+          <div class="text-2xl">📊</div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">En attente</p>
+            <p class="text-2xl font-bold text-yellow-600">{{stats.enAttente}}</p>
+          </div>
+          <div class="text-2xl">⏳</div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Traités</p>
+            <p class="text-2xl font-bold text-green-600">{{stats.traites}}</p>
+          </div>
+          <div class="text-2xl">✅</div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Rejetés</p>
+            <p class="text-2xl font-bold text-red-600">{{stats.rejetes}}</p>
+          </div>
+          <div class="text-2xl">❌</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barre de recherche et filtres -->
+    <div class="bg-white rounded-lg p-4 shadow-sm border">
+      <div class="flex flex-col md:flex-row gap-4 items-center">
+        <div class="flex-1">
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
+            <input 
+              type="text" 
+              placeholder="Rechercher un contenu, utilisateur ou motif..."
+              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              (input)="onRechercheChange($event)">
+          </div>
+        </div>
+        
+        <div class="flex gap-2 flex-wrap">
+          <button 
+            (click)="openFilterModal()"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+            🔧 Filtres avancés
+          </button>
+          
+          <select 
+            [(ngModel)]="filtres.type" 
+            (change)="appliquerFiltres()"
+            class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 min-w-[140px]">
+            <option value="">Tous les types</option>
+            <option value="portfolio">Portfolio</option>
+            <option value="mission">Mission</option>
+            <option value="message">Message</option>
+          </select>
+          
+          <select 
+            [(ngModel)]="filtres.statut" 
+            (change)="appliquerFiltres()"
+            class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 min-w-[140px]">
+            <option value="">Tous les statuts</option>
+            <option value="en_attente">En attente</option>
+            <option value="traite">Traité</option>
+            <option value="rejete">Rejeté</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau des contenus signalés -->
+  <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contenu</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Motif</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let contenu of contenusAffiches" class="hover:bg-gray-50 transition-colors">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <span class="text-2xl mr-2">{{getTypeIcon(contenu.type)}}</span>
+                <span class="text-sm font-medium text-gray-900">{{getTypeLabel(contenu.type)}}</span>
+              </div>
+            </td>
+            
+            <td class="px-6 py-4">
+              <div class="text-sm font-medium text-gray-900 truncate max-w-xs" title="{{contenu.titre}}">{{contenu.titre}}</div>
+              <div class="text-sm text-gray-500 truncate max-w-xs" title="{{contenu.description}}">{{contenu.description}}</div>
+            </td>
+            
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <div class="h-8 w-8 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center mr-3">
+                  <span class="text-xs font-medium text-white">{{contenu.utilisateur.nom.charAt(0).toUpperCase()}}</span>
+                </div>
+                <div>
+                  <div class="text-sm font-medium text-gray-900">{{contenu.utilisateur.nom}}</div>
+                  <div class="text-sm text-gray-500">{{contenu.utilisateur.email}}</div>
+                </div>
+              </div>
+            </td>
+            
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">{{contenu.motifSignalement}}</div>
+            </td>
+            
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{contenu.dateSignalement | date:'dd/MM/yyyy'}}
+            </td>
+            
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{getStatutClass(contenu.statut)}}">
+                {{getStatutLabel(contenu.statut)}}
+              </span>
+            </td>
+            
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <div class="flex space-x-2">
+                <button 
+                  (click)="openViewModal(contenu)"
+                  class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-md transition-all duration-200 hover:scale-105"
+                  title="Voir les détails">
+                  👁️
+                </button>
+                <button 
+                  (click)="openEditModal(contenu)"
+                  class="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-all duration-200 hover:scale-105"
+                  title="Modifier">
+                  ✏️
+                </button>
+                <button 
+                  (click)="supprimerContenu(contenu.id)"
+                  class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-all duration-200 hover:scale-105"
+                  title="Supprimer">
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <!-- Message si aucun résultat -->
+      <div *ngIf="contenusAffiches.length === 0" class="text-center py-16">
+        <div class="text-6xl mb-4">📭</div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun contenu signalé</h3>
+        <p class="text-gray-500 max-w-sm mx-auto">Aucun contenu ne correspond à vos critères de recherche. Essayez de modifier vos filtres.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Filtres -->
+<div *ngIf="showFilterModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-lg font-semibold text-gray-900">Filtres avancés</h3>
+      <button (click)="closeFilterModal()" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1 transition-colors">
+        <span class="text-2xl">×</span>
+      </button>
+    </div>
+    
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Type de contenu</label>
+        <select [(ngModel)]="filtres.type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <option value="">Tous les types</option>
+          <option value="portfolio">🎨 Portfolio</option>
+          <option value="mission">💼 Mission</option>
+          <option value="message">💬 Message</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+        <select [(ngModel)]="filtres.statut" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <option value="">Tous les statuts</option>
+          <option value="en_attente">⏳ En attente</option>
+          <option value="traite">✅ Traité</option>
+          <option value="rejete">❌ Rejeté</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Date de début</label>
+        <input type="date" [(ngModel)]="filtres.dateDebut" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Date de fin</label>
+        <input type="date" [(ngModel)]="filtres.dateFin" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      </div>
+      
+      <div class="flex gap-3 pt-6">
+        <button 
+          (click)="onFilterApply()"
+          class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors font-medium">
+          Appliquer les filtres
+        </button>
+        <button 
+          (click)="closeFilterModal()"
+          class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-lg transition-colors font-medium">
+          Annuler
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Voir -->
+<div *ngIf="showViewModal && contenuSelectionne" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-lg font-semibold text-gray-900">Détails du signalement</h3>
+      <button (click)="closeViewModal()" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1 transition-colors">
+        <span class="text-2xl">×</span>
+      </button>
+    </div>
+    
+    <div class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
+          <div class="flex items-center">
+            <span class="text-2xl mr-3">{{getTypeIcon(contenuSelectionne.type)}}</span>
+            <span class="text-sm font-medium text-gray-900">{{getTypeLabel(contenuSelectionne.type)}}</span>
+          </div>
+        </div>
+        
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+          <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full {{getStatutClass(contenuSelectionne.statut)}}">
+            {{getStatutLabel(contenuSelectionne.statut)}}
+          </span>
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Titre du contenu</label>
+        <div class="bg-gray-50 p-3 rounded-lg">
+          <p class="text-sm text-gray-900">{{contenuSelectionne.titre}}</p>
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+        <div class="bg-gray-50 p-3 rounded-lg">
+          <p class="text-sm text-gray-900">{{contenuSelectionne.description}}</p>
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Utilisateur concerné</label>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <div class="flex items-center">
+            <div class="h-12 w-12 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center mr-4">
+              <span class="text-sm font-medium text-white">{{contenuSelectionne.utilisateur.nom.charAt(0).toUpperCase()}}</span>
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-900">{{contenuSelectionne.utilisateur.nom}}</div>
+              <div class="text-sm text-gray-500">{{contenuSelectionne.utilisateur.email}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Motif du signalement</label>
+        <div class="bg-red-50 p-3 rounded-lg border border-red-200">
+          <p class="text-sm text-red-800">{{contenuSelectionne.motifSignalement}}</p>
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Date de signalement</label>
+        <div class="bg-gray-50 p-3 rounded-lg">
+          <p class="text-sm text-gray-900">{{contenuSelectionne.dateSignalement | date:'dd/MM/yyyy à HH:mm'}}</p>
+        </div>
+      </div>
+      
+      <div *ngIf="contenuSelectionne.commentaireModo">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Commentaire de modération</label>
+        <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+          <p class="text-sm text-blue-800">{{contenuSelectionne.commentaireModo}}</p>
+        </div>
+      </div>
+      
+      <div class="flex gap-3 pt-6 border-t">
+        <button 
+          (click)="openEditModal(contenuSelectionne); closeViewModal()"
+          class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg transition-colors font-medium">
+          Modifier
+        </button>
+        <button 
+          (click)="closeViewModal()"
+          class="bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-6 rounded-lg transition-colors font-medium">
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Modifier -->
+<div *ngIf="showEditModal && contenuSelectionne" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-lg font-semibold text-gray-900">Modifier le signalement</h3>
+      <button (click)="closeEditModal()" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1 transition-colors">
+        <span class="text-2xl">×</span>
+      </button>
+    </div>
+    
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Statut du signalement</label>
+        <select [(ngModel)]="contenuSelectionne.statut" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <option value="en_attente">⏳ En attente</option>
+          <option value="traite">✅ Traité</option>
+          <option value="rejete">❌ Rejeté</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Commentaire de modération</label>
+        <textarea 
+          [(ngModel)]="contenuSelectionne.commentaireModo"
+          rows="4" 
+          placeholder="Ajoutez un commentaire expliquant votre décision de modération..."
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none">
+        </textarea>
+        <p class="text-xs text-gray-500 mt-1">Ce commentaire sera visible dans l'historique de modération</p>
+      </div>
+      
+      <div class="flex gap-3 pt-6">
+        <button 
+          (click)="onEditSave(contenuSelectionne)"
+          class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors font-medium">
+          💾 Sauvegarder
+        </button>
+        <button 
+          (click)="closeEditModal()"
+          class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-lg transition-colors font-medium">
+          Annuler
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Ajouter -->
+<div *ngIf="showAddModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg p-6 w-full max-w-lg shadow-xl">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-lg font-semibold text-gray-900">Nouveau signalement</h3>
+      <button (click)="closeAddModal()" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1 transition-colors">
+        <span class="text-2xl">×</span>
+      </button>
+    </div>
+    
+    <form class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Type de contenu *</label>
+        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <option value="">Sélectionner un type</option>
+          <option value="portfolio">🎨 Portfolio</option>
+          <option value="mission">💼 Mission</option>
+          <option value="message">💬 Message</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Titre du contenu *</label>
+        <input 
+          type="text" 
+          placeholder="Titre du contenu signalé"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+        <textarea 
+          rows="3" 
+          placeholder="Description du contenu signalé"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none">
+        </textarea>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Email utilisateur *</label>
+        <input 
+          type="email" 
+          placeholder="email@exemple.com"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Nom de l'utilisateur *</label>
+        <input 
+          type="text" 
+          placeholder="Nom de l'utilisateur"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Motif du signalement *</label>
+        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <option value="">Sélectionner un motif</option>
+          <option value="Contenu inapproprié">Contenu inapproprié</option>
+          <option value="Spam">Spam</option>
+          <option value="Harcèlement">Harcèlement</option>
+          <option value="Faux profil">Faux profil</option>
+          <option value="Violation des CGU">Violation des CGU</option>
+          <option value="Autre">Autre</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Commentaire initial</label>
+        <textarea 
+          rows="3" 
+          placeholder="Détails supplémentaires sur le signalement (optionnel)"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none">
+        </textarea>
+      </div>
+      
+      <div class="flex gap-3 pt-6">
+        <button 
+          type="submit"
+          class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors font-medium">
+          ➕ Créer le signalement
+        </button>
+        <button 
+          type="button"
+          (click)="closeAddModal()"
+          class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-lg transition-colors font-medium">
+          Annuler
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

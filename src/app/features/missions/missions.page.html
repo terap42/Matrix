@@ -1,0 +1,182 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- Header avec titre et recherche -->
+  <div class="bg-white shadow-sm border-b border-gray-200 px-4 py-4">
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-2xl font-bold text-gray-900">Missions</h1>
+      <div class="flex items-center space-x-2">
+        <button 
+          (click)="toggleFilters()" 
+          class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+        >
+          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Barre de recherche -->
+    <div class="relative mb-4">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+      </div>
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm"
+        (input)="onSearchChange()"
+        placeholder="Rechercher une mission..."
+        class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      >
+    </div>
+
+    <!-- Catégories -->
+    <div class="flex space-x-2 overflow-x-auto pb-2">
+      <div *ngFor="let category of categories" class="flex-shrink-0">
+        <button 
+          (click)="onCategoryChange(category.value)"
+          [class]="'px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ' + 
+                   (selectedCategory === category.value ? 
+                   'bg-blue-500 text-white' : 
+                   'bg-gray-100 text-gray-700 hover:bg-gray-200')"
+        >
+          {{ category.label }} ({{ category.count }})
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres avancés -->
+  <div *ngIf="showFilters" class="bg-white border-b border-gray-200 px-4 py-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Filtre budget -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Budget</label>
+        <select 
+          [(ngModel)]="selectedBudgetRange" 
+          (change)="onBudgetRangeChange()"
+          class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option *ngFor="let range of budgetRanges" [value]="range.value">
+            {{ range.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Filtre délai -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Délai</label>
+        <select 
+          [(ngModel)]="selectedDeadline" 
+          (change)="onDeadlineChange()"
+          class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option *ngFor="let deadline of deadlineOptions" [value]="deadline.value">
+            {{ deadline.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mt-4 flex justify-end">
+      <button 
+        (click)="clearFilters()"
+        class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+      >
+        Effacer les filtres
+      </button>
+    </div>
+  </div>
+
+  <!-- Liste des missions -->
+  <div class="px-4 py-4 pb-20">
+    <div *ngIf="filteredMissions.length === 0" class="text-center py-12">
+      <div class="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+      </div>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune mission trouvée</h3>
+      <p class="text-gray-500">Essayez de modifier vos critères de recherche</p>
+    </div>
+
+    <div class="space-y-4 overflow-y-auto max-h-[calc(100vh-250px)]">
+      <div *ngFor="let mission of filteredMissions" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <!-- En-tête de la mission -->
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+              <span class="text-lg">{{ getCategoryIcon(mission.category) }}</span>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">{{ mission.title }}</h3>
+              <div class="flex items-center space-x-2 text-sm text-gray-500">
+                <img [src]="mission.clientAvatar" [alt]="mission.clientName" class="w-4 h-4 rounded-full">
+                <span>{{ mission.clientName }}</span>
+                <span>•</span>
+                <span>{{ getTimeAgo(mission.publishedAt) }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex flex-col items-end space-y-2">
+            <div *ngIf="mission.isUrgent" class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
+              Urgent
+            </div>
+            <div [class]="'px-2 py-1 text-xs font-medium rounded-full ' + 
+                         (getUrgencyClass(mission) === 'urgent' ? 'bg-red-100 text-red-800' :
+                          getUrgencyClass(mission) === 'soon' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-green-100 text-green-800')">
+              {{ formatDate(mission.deadline) }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <p class="text-gray-600 mb-4 line-clamp-3">{{ mission.description }}</p>
+
+        <!-- Compétences -->
+        <div class="flex flex-wrap gap-2 mb-4">
+          <span *ngFor="let skill of mission.skills" class="px-2 py-1 bg-blue-50 text-blue-700 text-sm rounded-full">
+            {{ skill }}
+          </span>
+        </div>
+
+        <!-- Informations du bas -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-1">
+              <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+              </svg>
+              <span class="text-sm font-medium text-gray-900">{{ formatBudget(mission.budget) }}</span>
+            </div>
+            <div class="flex items-center space-x-1">
+              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              <span class="text-sm text-gray-500">{{ mission.applicationsCount }} candidat{{ mission.applicationsCount > 1 ? 's' : '' }}</span>
+            </div>
+          </div>
+
+          <div class="flex space-x-2">
+            <button 
+              (click)="viewMissionDetails(mission.id)"
+              class="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+            >
+              Voir détails
+            </button>
+            
+            <button 
+              (click)="applyToMission(mission)"
+              class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Postuler
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

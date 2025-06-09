@@ -1,0 +1,70 @@
+// src/app/admin/mission-management/components/mission-list/mission-list.component.scss
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.z-5 {
+  z-index: 5;
+}
+
+// Animation pour les menus déroulants
+.fade-in {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Hover effects personnalisés
+tr:hover {
+  background-color: rgba(249, 250, 251, 0.8);
+}
+
+// Style pour les badges de statut
+.status-badge {
+  transition: all 0.2s ease-in-out;
+}
+
+// Style pour les boutons d'action
+.action-button {
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+// Responsive design pour mobile
+@media (max-width: 768px) {
+  .overflow-x-auto {
+    table {
+      min-width: 800px;
+    }
+  }
+}
+
+// Style pour la pagination
+.pagination-button {
+  transition: all 0.2s ease-in-out;
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  &:not(:disabled):hover {
+    background-color: rgba(229, 231, 235, 0.8);
+  }
+}

@@ -1,0 +1,244 @@
+<div class="flex h-screen bg-gray-100 ">
+  <div [ngClass]="{'hidden': !isSidebarOpen}"
+    class="w-64 bg-gradient-to-b from-gray-800 to-gray-900 text-white flex flex-col shadow-xl transition-all duration-300">
+    <div class="p-6">
+      <div class="flex items-center">
+            <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+              <span class="text-white font-bold text-xl">M</span>
+            </div>
+            <span class="ml-3 text-2xl font-bold text-white-900">MATRIX</span>
+          </div>
+    </div>
+    <div class="border-t border-gray-700 opacity-40 mx-5 mb-5"></div>
+
+    <nav class="flex-1 px-4 pb-4 overflow-y-auto hide-scrollbar">
+      <a (click)="navigate('dashboard')"
+        [ngClass]="{'hover:bg-gray-700 cursor-pointer opacity-80 transition-colors mb-1': !isActive('dashboard'), 'bg-green-600 text-white opacity-100': isActive('dashboard')}"
+        class="flex items-center px-3 py-3 p-2 font-semibold rounded">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 " fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 0 1-1.125-1.125v-3.75ZM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-8.25ZM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-2.25Z" />
+        </svg>
+
+        <span class="">Tableau de bord</span>
+      </a>
+
+      <a (click)="navigate('utilisateurs')"
+        [ngClass]="{'hover:bg-gray-700 cursor-pointer opacity-80 transition-colors mb-1': !isActive('utilisateurs'), 'bg-green-600 text-white opacity-100': isActive('utilisateurs')}"
+        class="flex items-center px-3 py-3 p-2 font-semibold rounded">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 " fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+        <span class="">Gestion des Utilisateurs</span>
+      </a>
+
+      <a (click)="navigate('modo-contenu')"
+        [ngClass]="{'hover:bg-gray-700 cursor-pointer opacity-80 transition-colors mb-1': !isActive('modo-contenu'), 'bg-green-600 text-white opacity-100': isActive('modo-contenu')}"
+        class="flex items-center px-3 py-3 p-2 font-semibold rounded">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205 3 1m1.5.5-1.5-.5M6.75 7.364V3h-3v18m3-13.636 10.5-3.819" />
+        </svg>
+
+        <span class="">Modération des Contenus</span>
+      </a>
+
+      <a (click)="navigate('gest-missions')"
+        [ngClass]="{'hover:bg-gray-700 cursor-pointer opacity-80 transition-colors mb-1': !isActive('gest-missions'), 'bg-green-600 text-white opacity-100': isActive('gest-missions')}"
+        class="flex items-center px-3 py-3 p-2 font-semibold rounded">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 " fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z" />
+        </svg>
+
+        <span class="">Gestion des Missions</span>
+      </a>
+       <a (click)="navigate('parametres')"
+        [ngClass]="{'hover:bg-gray-700 cursor-pointer opacity-80 transition-colors mb-1': !isActive('parametres'), 'bg-green-600 text-white opacity-100': isActive('parametres')}"
+        class="flex items-center px-3 py-3 p-2 font-semibold rounded">
+        <div class="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 " fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
+          </svg>
+
+          <span class="mr-2">Paramètres de la Plateforme</span>
+          <span
+            [ngClass]="{'text-green-600 bg-white': isActive('parametres'), 'text-white bg-green-600': !isActive('parametres')}"
+            class="text-xs px-2.5 py-1 rounded-full">2</span>
+        </div>
+      </a>
+
+      <a (click)="navigate('gest-missions')"
+        [ngClass]="{'hover:bg-gray-700 cursor-pointer opacity-80 transition-colors mb-1': !isActive('ressources'), 'bg-green-600 text-white opacity-100': isActive('ressources')}"
+        class="flex items-center px-3 py-3 p-2 font-semibold rounded">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 " fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+        <span class="">Cartographies des freelance</span>
+      </a>
+     
+      
+     
+      
+    </nav>
+
+    <div class="mt-auto px-6 py-4 text-xs ">
+      Version 1.0 - Copyright 2025
+    </div>
+  </div>
+
+  <!-- Contenu principal -->
+  <main class="flex-1 overflow-y-auto hide-scrollbar text-black">
+    <!-- En-tête -->
+    <header class="sticky top-0 z-40 bg-white shadow-sm flex items-center justify-between p-4">
+      <div class="flex items-center">
+        <button (click)="toggleSidebar()" class="p-1 rounded-md hover:bg-gray-100 focus:outline-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+          </svg>
+        </button>
+        <h2 class="ml-4 text-xl font-medium text-gray-800">{{title}}</h2>
+      </div>
+
+      <div class="relative w-64 md:w-80">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+          <svg class="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </span>
+        <input type="text"
+          class="w-full border-none pl-10 pr-4 py-2 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          placeholder="Rechercher">
+      </div>
+
+      <div class="flex items-center">
+        <div class="relative mr-3" (click)="navigate('notifications')">
+          <button
+            class="relative p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-gray-600" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <span
+              class="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">3</span>
+          </button>
+        </div>
+
+        <!-- <div class="flex items-center cursor-pointer ml-3" (click)="openProfileDetail()">
+          <div class="h-9 w-9 rounded-full overflow-hidden">
+            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profile" class="h-full w-full object-cover">
+          </div>
+          <div class="ml-2">
+            <div class="text-sm font-medium text-gray-900">Dumont</div>
+            <div class="text-xs text-gray-500">Admin</div>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1 text-green-500" viewBox="0 0 20 20"
+            fill="currentColor">
+            <path fill-rule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+              clip-rule="evenodd" />
+          </svg>
+        </div> -->
+        <!-- Tooltip Container -->
+        <div class="tooltip-container relative inline-block max-w-xs">
+          <!-- Trigger -->
+          <div class="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl shadow-xs cursor-pointer"
+            (click)="toggleTooltip()">
+            <img class="w-9 h-9 rounded-full" src="https://randomuser.me/api/portraits/men/32.jpg" alt="Avatar">
+
+            <div class="flex-1">
+              <h4 class="text-sm font-semibold text-gray-800 ">
+                Amanda Harvey
+              </h4>
+              <p class="text-sm text-gray-500">
+                Admin
+              </p>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1 text-green-500" viewBox="0 0 20 20"
+              fill="currentColor">
+              <path fill-rule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clip-rule="evenodd" />
+            </svg>
+          </div>
+
+          <!-- Tooltip Content -->
+          <div
+            class="absolute z-10 w-full max-w-xs mt-2 transition-all duration-300 transform bg-white border border-gray-100 rounded-xl shadow-md dark:bg-neutral-800 "
+            [class]="showTooltip ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95'">
+            <!-- Arrow -->
+            <div
+              class="absolute -top-2 right-4 w-4 h-4 rotate-45 bg-white border-t border-l border-gray-200 dark:bg-neutral-800 ">
+            </div>
+
+            <!-- Header -->
+            <div class="flex items-center gap-3 p-4 border-b border-gray-200 ">
+              <img class="w-10 h-10 rounded-full ring-2 ring-white" src="https://randomuser.me/api/portraits/men/32.jpg"
+                alt="Avatar">
+              <div class="flex-1">
+                <h4 class="font-semibold text-gray-800 dark:text-white">
+                  Amanda Harvey
+                  <span
+                    class="inline-flex items-center px-1.5 py-0.5 ml-0.5 text-xs font-medium bg-gray-800 text-white rounded-md dark:bg-white dark:text-neutral-800">
+                    ADMIN
+                  </span>
+                </h4>
+                <p class="text-sm text-gray-500 ">
+                  Storyteller
+                </p>
+              </div>
+            </div>
+
+            <!-- List -->
+            <ul class="p-4 space-y-2">
+              <li class="flex items-center gap-3 text-sm text-gray-800 ">
+                <ion-icon name="business-outline" class="w-4 h-4 text-gray-600 "></ion-icon>
+                Pixeel Ltd.
+              </li>
+              <li class="flex items-center gap-3 text-sm text-gray-800 ">
+                <ion-icon name="phone-portrait-outline" class="w-4 h-4 text-gray-600 "></ion-icon>
+                (892) 312-5483
+              </li>
+              <li class="flex items-center gap-3 text-sm text-gray-800 ">
+                <ion-icon name="mail-outline" class="w-4 h-4 text-gray-600 "></ion-icon>
+                amandaemail.com
+              </li>
+            </ul>
+
+            <!-- Footer -->
+            <div class="flex items-center justify-between p-3 bg-gray-100 dark:bg-neutral-800 rounded-b-xl">
+              <a href="#"
+                class="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-600  dark:hover:text-white">
+                <ion-icon name="flag-outline" class="w-3 h-3"></ion-icon>
+                Flag
+              </a>
+              <div size="small"
+                class="px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-full hover:bg-blue-700">
+                Follow
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Contenu -->
+    <div class="hide-scrollbar">
+      <!-- Router outlet pour l'affichage des pages -->
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

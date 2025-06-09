@@ -1,0 +1,33 @@
+<ion-header [translucent]="true" class="pt-safe-offset bg-gray-100 ion-no-border">
+  <ion-toolbar>
+    <ion-title>profile</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <!-- <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">profile</ion-title>
+    </ion-toolbar>
+  </ion-header> -->
+  <div class="main-content">
+    <button class="bg-green-700 hover:bg-green-500 text-white font-bold py-2 px-4 rounded border border-solid border-red-600">
+      Button
+    </button>
+
+    <!-- Ajoute ce bloc où tu veux dans ton ion-content -->
+    <ion-item lines="none">
+      <ion-label>Mode sombre</ion-label>
+      <ion-toggle slot="end" [checked]="isDark" (ionChange)="toggleTheme($event)"></ion-toggle>
+    </ion-item>
+
+
+    <!-- <app-button-demo></app-button-demo> -->
+
+    <h1>icon demo</h1>
+    <app-icon-button-demo></app-icon-button-demo>
+  </div>
+</ion-content>

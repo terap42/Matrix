@@ -1,0 +1,93 @@
+<!-- user-profile.component.html -->
+<ion-header class="ion-no-border">
+  <ion-toolbar class="bg-gray-100" style="--background: #f3f4f6 !important">
+    <ion-buttons slot="start">
+      <app-icon-button size="sm" fontSize="xl" radius="md" icon="close" variant="transparent" color="danger" animation="pulse" width="md" (buttonClick)="dismiss()">
+      </app-icon-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="bg-gray-100" fullscreen="true">
+  <div class="flex flex-col min-h-full md:container md:mx-auto md:px-4 pb-6">
+    
+    <!-- Profile section -->
+    <div class="flex flex-col items-center px-6 pt-6 mb-3">
+      <div class="mb-2 h-20 w-20 overflow-hidden rounded-full border-4 border-white shadow-lg">
+        <img src="assets/images/1.png" alt="Baye Ahmadou NDIAYE" class="h-full w-full object-cover" />
+      </div>
+      <h2 class="mt-2 text-center text-xl font-bold text-gray-900">Baye Ahmadou<br />NDIAYE</h2>
+      <p class="text-center text-sm text-gray-600">Président Association Cheikh Al Islam</p>
+    </div>
+
+    <!-- Sections -->
+    <div class="space-y-3 flex-1 px-3">
+      <!-- Informations personnelles -->
+      <div class="px-6 py-4 bg-white rounded-xl shadow-sm">
+        <h3 class="mb-3 text-sm font-bold text-gray-900">Informations personnelles</h3>
+        <div class="space-y-3">
+          <div class="flex items-center">
+            <ion-icon name="call" class="mr-3 text-gray-500 text-lg"></ion-icon>
+            <span class="text-sm text-gray-700">77 300 94 23</span>
+          </div>
+          <div class="flex items-center">
+            <ion-icon name="mail" class="mr-3 text-gray-500 text-lg"></ion-icon>
+            <span>bayeahmadou&#64;gmail.com</span>
+
+          </div>
+          <div class="flex items-center">
+            <ion-icon name="home" class="mr-3 text-gray-500 text-lg"></ion-icon>
+            <span class="text-sm text-gray-700">86, Avenue Lamine Gueye</span>
+          </div>
+          <div class="flex items-center">
+            <ion-icon name="location" class="mr-3 text-gray-500 text-lg"></ion-icon>
+            <span class="text-sm text-gray-700">Dakar - Sénégal</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mon compte -->
+      <div class="px-6 py-4 bg-white rounded-xl shadow-sm">
+        <h3 class="mb-3 text-sm font-bold text-gray-900">Mon compte</h3>
+        <div class="space-y-3">
+          <div class="flex items-center">
+            <ion-icon name="card" class="mr-3 text-gray-500 text-lg"></ion-icon>
+            <span class="text-sm text-gray-700">Méthodes de paiement</span>
+          </div>
+          <div class="flex items-center">
+            <ion-icon name="pulse" class="mr-3 text-gray-500 text-lg"></ion-icon>
+            <span class="text-sm text-gray-700">Activités</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activités -->
+      <div class="px-6 py-4 bg-white rounded-xl shadow-sm">
+        <h3 class="mb-3 text-sm font-bold text-gray-900">Activités de la Faydah</h3>
+        <div class="space-y-3">
+          <div class="flex items-center">
+            <ion-icon name="people" class="mr-3 text-gray-500 text-lg"></ion-icon>
+            <span class="text-sm text-gray-700">Dahira Cheikh Al Islam</span>
+          </div>
+          <div class="flex items-center">
+            <ion-icon name="map" class="mr-3 text-gray-500 text-lg"></ion-icon>
+            <span class="text-sm text-gray-700">Kaolack - Sénégal</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Password & Logout -->
+    <div class="px-6 pt-4 mt-3">
+      <div class="mb-4">
+        <app-button fontWeight="normal" text="Changer mon mot de passe" size="sm" radius="md" variant="transparent" color="light" width="full">
+        </app-button>
+      </div>
+      <div>
+        <app-button fontWeight="normal" text="SE DÉCONNECTER" size="md" radius="md" iconEnd="log-out" variant="light" color="danger" width="full" (buttonClick)="logout()">
+        </app-button>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

@@ -1,0 +1,246 @@
+<!-- src/app/admin/mission-management/components/mission-list/mission-list.component.html -->
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+  <!-- En-tête du tableau -->
+  <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+    <div class="flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-gray-900">Liste des Missions</h3>
+      <div class="flex items-center space-x-3">
+        <span class="text-sm text-gray-500">
+          {{ filteredMissions.length }} mission(s) trouvée(s)
+        </span>
+        <div class="flex items-center space-x-1">
+          <button 
+            class="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors"
+            (click)="exportMissions()">
+            <i class="fas fa-download mr-1"></i>
+            Exporter
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau des missions -->
+  <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Mission
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Client
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Budget
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Statut
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Candidatures
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Date création
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let mission of paginatedMissions; trackBy: trackByMissionId" 
+            class="hover:bg-gray-50 transition-colors">
+          
+          <!-- Colonne Mission -->
+          <td class="px-6 py-4">
+            <div class="flex flex-col">
+              <div class="flex items-start space-x-3">
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-gray-900 line-clamp-2" 
+                     [title]="mission.title">
+                    {{ mission.title }}
+                  </p>
+                  <p class="text-xs text-gray-600 mt-1 line-clamp-2" 
+                     [title]="mission.description">
+                    {{ mission.description }}
+                  </p>
+                  <div class="flex items-center mt-2 space-x-2">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      {{ mission.category }}
+                    </span>
+                    <span *ngIf="mission.isReported" 
+                          class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      <i class="fas fa-exclamation-triangle mr-1"></i>
+                      Signalé
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+
+          <!-- Colonne Client -->
+          <td class="px-6 py-4">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 h-8 w-8">
+                <div class="h-8 w-8 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center">
+                  <span class="text-xs font-semibold text-white">
+                    {{ getInitials(mission.clientName) }}
+                  </span>
+                </div>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm font-medium text-gray-900">{{ mission.clientName }}</p>
+                <p class="text-xs text-gray-500">{{ mission.clientEmail }}</p>
+              </div>
+            </div>
+          </td>
+
+          <!-- Colonne Budget -->
+          <td class="px-6 py-4">
+            <div class="text-sm font-semibold text-gray-900">
+              {{ mission.budget | currency:mission.currency:'symbol':'1.0-0' }}
+            </div>
+            <div class="text-xs text-gray-500">
+              Budget total
+            </div>
+          </td>
+
+          <!-- Colonne Statut -->
+          <td class="px-6 py-4">
+            <span [class]="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + getStatusColor(mission.status)">
+              <span [class]="'w-2 h-2 rounded-full mr-2 ' + getStatusDotColor(mission.status)"></span>
+              {{ getStatusLabel(mission.status) }}
+            </span>
+          </td>
+
+          <!-- Colonne Candidatures -->
+          <td class="px-6 py-4">
+            <div class="flex items-center">
+              <div class="text-sm font-semibold text-gray-900">
+                {{ mission.applicationsCount }}
+              </div>
+              <div class="ml-2">
+                <i class="fas fa-users text-gray-400 text-xs"></i>
+              </div>
+            </div>
+          </td>
+
+          <!-- Colonne Date création -->
+          <td class="px-6 py-4">
+            <div class="text-sm text-gray-900">
+              {{ mission.createdAt | date:'dd/MM/yyyy' }}
+            </div>
+            <div class="text-xs text-gray-500">
+              {{ mission.createdAt | date:'HH:mm' }}
+            </div>
+          </td>
+
+          <!-- Colonne Actions -->
+          <td class="px-6 py-4">
+            <div class="flex items-center space-x-2">
+              <!-- Bouton Voir détails -->
+              <button
+                (click)="viewDetail(mission)"
+                class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors"
+                title="Voir les détails">
+                <i class="fas fa-eye text-sm"></i>
+              </button>
+
+              <!-- Bouton Modifier statut -->
+              <div class="relative" *ngIf="!mission.isReported">
+                <button
+                  (click)="toggleStatusMenu(mission.id)"
+                  class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors"
+                  title="Changer le statut">
+                  <i class="fas fa-edit text-sm"></i>
+                </button>
+                
+                <!-- Menu déroulant des statuts -->
+                <div *ngIf="activeStatusMenu === mission.id" 
+                     class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                  <div class="py-1">
+                    <button *ngFor="let status of availableStatuses"
+                            (click)="changeStatus(mission, status.value)"
+                            class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      <span [class]="'w-2 h-2 rounded-full inline-block mr-2 ' + getStatusDotColor(status.value)"></span>
+                      {{ status.label }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bouton Résoudre signalement -->
+              <button *ngIf="mission.isReported"
+                (click)="resolveReport(mission)"
+                class="p-2 text-orange-600 hover:text-orange-800 hover:bg-orange-50 rounded-full transition-colors"
+                title="Résoudre le signalement">
+                <i class="fas fa-check-circle text-sm"></i>
+              </button>
+
+              <!-- Bouton Supprimer -->
+              <button
+                (click)="deleteMission(mission)"
+                class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
+                title="Supprimer la mission">
+                <i class="fas fa-trash text-sm"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Message si aucune mission -->
+        <tr *ngIf="paginatedMissions.length === 0">
+          <td colspan="7" class="px-6 py-12 text-center">
+            <div class="flex flex-col items-center">
+              <i class="fas fa-briefcase text-4xl text-gray-300 mb-4"></i>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune mission trouvée</h3>
+              <p class="text-gray-500">Aucune mission ne correspond aux filtres sélectionnés.</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="totalPages > 1" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+    <div class="flex items-center justify-between">
+      <div class="text-sm text-gray-700">
+        Affichage de {{ (currentPage - 1) * itemsPerPage + 1 }} à 
+        {{ Math.min(currentPage * itemsPerPage, totalItems) }} sur {{ totalItems }} résultats
+      </div>
+      
+      <div class="flex items-center space-x-2">
+        <button
+          (click)="previousPage()"
+          [disabled]="currentPage === 1"
+          [class]="'px-3 py-2 text-sm font-medium rounded-md transition-colors ' + 
+                   (currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-200')">
+          <i class="fas fa-chevron-left mr-1"></i>
+          Précédent
+        </button>
+        
+        <span class="px-3 py-2 text-sm font-medium text-gray-700">
+          Page {{ currentPage }} sur {{ totalPages }}
+        </span>
+        
+        <button
+          (click)="nextPage()"
+          [disabled]="currentPage === totalPages"
+          [class]="'px-3 py-2 text-sm font-medium rounded-md transition-colors ' + 
+                   (currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-200')">
+          Suivant
+          <i class="fas fa-chevron-right ml-1"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay pour fermer les menus -->
+<div *ngIf="activeStatusMenu" 
+     (click)="activeStatusMenu = null" 
+     class="fixed inset-0 z-5"></div>

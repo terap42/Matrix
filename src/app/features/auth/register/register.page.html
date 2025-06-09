@@ -1,0 +1,113 @@
+<div class="h-screen bg-[#215a2e] text-white px-4 py-6 sm:px-6 lg:px-8 overflow-y-auto">
+  <!-- Logo -->
+  <div class="flex justify-center mt-6 sm:mt-10">
+    <img src="assets/images/logoregistre.png" alt="faydah logo" class="h-12 sm:h-16" />
+  </div>
+
+  <!-- Titre -->
+  <h1 class="text-xl sm:text-2xl font-bold text-center mt-6 mb-4">INSCRIPTION</h1>
+
+  <!-- Segment genre -->
+  <div class="flex justify-center my-6 space-x-4" id="gender-selector">
+    <button
+      type="button"
+      class="bg-[#2e7d32] text-white px-4 py-2 rounded-full border-2 border-transparent focus:outline-none transition-all text-sm sm:text-base"
+      data-gender="M."
+      onclick="selectGender(this)"
+    >
+      M.
+    </button>
+    <button
+      type="button"
+      class="bg-[#2e7d32] text-white px-4 py-2 rounded-full border-2 border-transparent focus:outline-none transition-all text-sm sm:text-base"
+      data-gender="Mme."
+      onclick="selectGender(this)"
+    >
+      Mme.
+    </button>
+  </div>
+
+  <!-- Formulaire -->
+  <form class="space-y-6 max-w-md w-full mx-auto" onsubmit="return submitForm(event)">
+    <!-- Champ caché genre -->
+    <input type="hidden" name="genre" id="selected-gender" required />
+
+    <div>
+      <input
+        type="text"
+        name="nom"
+        placeholder="Nom"
+        class="w-full bg-transparent text-white placeholder-gray-300 py-2 border-0 border-b border-white focus:border-white focus:outline-none focus:ring-0 text-sm sm:text-base"
+        required
+      />
+    </div>
+
+    <div>
+      <input
+        type="text"
+        name="prenom"
+        placeholder="Prénom"
+        class="w-full bg-transparent text-white placeholder-gray-300 py-2 border-0 border-b border-white focus:border-white focus:outline-none focus:ring-0 text-sm sm:text-base"
+        required
+      />
+    </div>
+
+    <div>
+      <input
+        type="tel"
+        name="telephone"
+        placeholder="Numéro de téléphone"
+        class="w-full bg-transparent text-white placeholder-gray-300 py-2 border-0 border-b border-white focus:border-white focus:outline-none focus:ring-0 text-sm sm:text-base"
+        required
+      />
+    </div>
+
+    <div>
+      <input
+        type="text"
+        name="ville"
+        placeholder="Pays / Ville de résidence"
+        class="w-full bg-transparent text-white placeholder-gray-300 py-2 border-0 border-b border-white focus:border-white focus:outline-none focus:ring-0 text-sm sm:text-base"
+        required
+      />
+    </div>
+
+    <div>
+      <input
+        type="email"
+        name="email"
+        placeholder="Adresse email"
+        class="w-full bg-transparent text-white placeholder-gray-300 py-2 border-0 border-b border-white focus:border-white focus:outline-none focus:ring-0 text-sm sm:text-base"
+        required
+      />
+    </div>
+
+    <div>
+      <input
+        type="text"
+        name="dahira"
+        placeholder="Dahira"
+        class="w-full bg-transparent text-white placeholder-gray-300 py-2 border-0 border-b border-white focus:border-white focus:outline-none focus:ring-0 text-sm sm:text-base"
+      />
+    </div>
+
+    <div>
+      <input
+        type="text"
+        name="muqadam"
+        placeholder="Muqadam"
+        class="w-full bg-transparent text-white placeholder-gray-300 py-2 border-0 border-b border-white focus:border-white focus:outline-none focus:ring-0 text-sm sm:text-base"
+      />
+    </div>
+
+    <!-- Bouton soumettre -->
+    <div class="flex justify-center mt-6">
+      <button
+        type="submit"
+        class="text-white text-2xl p-3 rounded-full hover:bg-[#1b4b25] transition-colors"
+      >
+        <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+  </form>
+</div>

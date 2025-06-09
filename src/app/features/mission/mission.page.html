@@ -1,0 +1,374 @@
+<div class="h-screen bg-gray-50 flex flex-col">
+  <!-- Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200 flex-shrink-0 z-10">
+    <div class="flex items-center justify-between px-4 py-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer"
+             (click)="goBack()">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </div>
+        <h1 class="text-xl font-bold text-gray-900">Créer une Mission</h1>
+      </div>
+      <div class="text-sm text-gray-500">
+        Étape 1/1
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenu scrollable avec espace pour les boutons -->
+  <div class="flex-1 overflow-y-auto" style="height: 0;">
+    <form [formGroup]="missionForm" (ngSubmit)="onSubmit()" class="p-4 space-y-6 pb-32">
+      
+      <!-- Informations générales -->
+      <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+            <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          Informations générales
+        </h2>
+        
+        <!-- Titre de la mission -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Titre de la mission *
+          </label>
+          <input
+            type="text"
+            formControlName="title"
+            placeholder="Ex: Création d'un site e-commerce moderne"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base"
+            [class.border-red-500]="missionForm.get('title')?.invalid && missionForm.get('title')?.touched"
+          >
+          <div *ngIf="missionForm.get('title')?.invalid && missionForm.get('title')?.touched" 
+               class="text-red-500 text-xs mt-1">
+            Le titre doit contenir au moins 10 caractères
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Description détaillée *
+          </label>
+          <textarea
+            formControlName="description"
+            rows="4"
+            placeholder="Décrivez précisément votre projet, vos attentes, les livrables souhaités..."
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none text-base"
+            [class.border-red-500]="missionForm.get('description')?.invalid && missionForm.get('description')?.touched"
+          ></textarea>
+          <div *ngIf="missionForm.get('description')?.invalid && missionForm.get('description')?.touched" 
+               class="text-red-500 text-xs mt-1">
+            La description doit contenir au moins 50 caractères
+          </div>
+        </div>
+
+        <!-- Catégorie principale -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Catégorie principale *
+          </label>
+          <select
+            formControlName="category"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base"
+          >
+            <option value="">Sélectionnez une catégorie</option>
+            <option *ngFor="let category of skillCategories" [value]="category.name">
+              {{ category.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Compétences requises -->
+      <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3">
+            <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+            </svg>
+          </div>
+          Compétences requises
+        </h2>
+        
+        <div class="space-y-4">
+          <div *ngFor="let category of skillCategories" class="border-l-4 border-blue-200 pl-4">
+            <h3 class="font-medium text-gray-800 mb-2">{{ category.name }}</h3>
+            <div class="flex flex-wrap gap-2">
+              <div
+                *ngFor="let skill of category.skills"
+                (click)="toggleSkill(skill)"
+                class="px-3 py-2 rounded-full text-sm cursor-pointer transition-all"
+                [class]="isSkillSelected(skill) 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+              >
+                {{ skill }}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div *ngIf="selectedSkills.length === 0" class="text-amber-600 text-sm mt-4 p-3 bg-amber-50 rounded-lg">
+          ⚠️ Veuillez sélectionner au moins une compétence
+        </div>
+        
+        <div *ngIf="selectedSkills.length > 0" class="mt-4">
+          <p class="text-sm text-gray-600 mb-2">Compétences sélectionnées ({{ selectedSkills.length }}):</p>
+          <div class="flex flex-wrap gap-2">
+            <span *ngFor="let skill of selectedSkills" 
+                  class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+              {{ skill }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Budget et rémunération -->
+      <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div class="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+            <svg class="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"></path>
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+          Budget et rémunération
+        </h2>
+
+        <!-- Type de budget -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-3">Type de rémunération</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div
+              (click)="onBudgetTypeChange('fixed')"
+              class="p-4 border-2 rounded-lg cursor-pointer transition-all"
+              [class]="budgetType === 'fixed' 
+                ? 'border-blue-500 bg-blue-50' 
+                : 'border-gray-200 hover:border-gray-300'"
+            >
+              <div class="flex items-center space-x-3">
+                <div class="w-4 h-4 rounded-full border-2"
+                     [class]="budgetType === 'fixed' ? 'border-blue-500 bg-blue-500' : 'border-gray-300'">
+                  <div *ngIf="budgetType === 'fixed'" class="w-2 h-2 bg-white rounded-full m-0.5"></div>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-900">Prix fixe</p>
+                  <p class="text-sm text-gray-500">Budget global</p>
+                </div>
+              </div>
+            </div>
+            
+            <div
+              (click)="onBudgetTypeChange('hourly')"
+              class="p-4 border-2 rounded-lg cursor-pointer transition-all"
+              [class]="budgetType === 'hourly' 
+                ? 'border-blue-500 bg-blue-50' 
+                : 'border-gray-200 hover:border-gray-300'"
+            >
+              <div class="flex items-center space-x-3">
+                <div class="w-4 h-4 rounded-full border-2"
+                     [class]="budgetType === 'hourly' ? 'border-blue-500 bg-blue-500' : 'border-gray-300'">
+                  <div *ngIf="budgetType === 'hourly'" class="w-2 h-2 bg-white rounded-full m-0.5"></div>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-900">Tarif horaire</p>
+                  <p class="text-sm text-gray-500">Prix par heure</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Champs budget fixe -->
+        <div *ngIf="budgetType === 'fixed'" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Budget minimum *</label>
+              <div class="relative">
+                <input
+                  type="number"
+                  formControlName="budgetMin"
+                  placeholder="500"
+                  class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                >
+                <div class="absolute left-3 top-3.5 text-gray-500">€</div>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Budget maximum</label>
+              <div class="relative">
+                <input
+                  type="number"
+                  formControlName="budgetMax"
+                  placeholder="1200"
+                  class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                >
+                <div class="absolute left-3 top-3.5 text-gray-500">€</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Champs tarif horaire -->
+        <div *ngIf="budgetType === 'hourly'" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Tarif horaire *</label>
+              <div class="relative">
+                <input
+                  type="number"
+                  formControlName="hourlyRate"
+                  placeholder="35"
+                  class="w-full pl-8 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                >
+                <div class="absolute left-3 top-3.5 text-gray-500">€</div>
+                <div class="absolute right-3 top-3.5 text-gray-500">/h</div>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Heures estimées *</label>
+              <input
+                type="number"
+                formControlName="estimatedHours"
+                placeholder="40"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Délais et urgence -->
+      <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div class="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+            <svg class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+          Délais et planning
+        </h2>
+
+        <div class="space-y-4">
+          <!-- Date limite -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Date limite souhaitée *</label>
+            <input
+              type="date"
+              formControlName="deadline"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+            >
+          </div>
+
+          <!-- Niveau d'urgence -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-3">Niveau d'urgence</label>
+            <div class="space-y-2">
+              <div *ngFor="let level of urgencyLevels"
+                   (click)="missionForm.patchValue({urgency: level.value})"
+                   class="flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all"
+                   [class]="missionForm.get('urgency')?.value === level.value 
+                     ? 'border-blue-500 bg-blue-50' 
+                     : 'border-gray-200 hover:border-gray-300'">
+                <div class="w-4 h-4 rounded-full border-2 mr-3"
+                     [class]="missionForm.get('urgency')?.value === level.value 
+                       ? 'border-blue-500 bg-blue-500' 
+                       : 'border-gray-300'">
+                  <div *ngIf="missionForm.get('urgency')?.value === level.value" 
+                       class="w-2 h-2 bg-white rounded-full m-0.5"></div>
+                </div>
+                <div class="flex-1">
+                  <span class="font-medium text-gray-900">{{ level.label }}</span>
+                </div>
+                <span class="px-2 py-1 rounded-full text-xs font-medium" [class]="level.color">
+                  {{ level.value === 'normal' ? 'Standard' : level.value === 'urgent' ? 'Urgent' : 'Express' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Critères supplémentaires -->
+      <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div class="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+            <svg class="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+          Critères supplémentaires
+        </h2>
+
+        <div class="space-y-4">
+          <!-- Modalité de travail -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Modalité de travail</label>
+            <select
+              formControlName="location"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+            >
+              <option value="remote">100% à distance</option>
+              <option value="hybrid">Hybride</option>
+              <option value="onsite">Sur site</option>
+            </select>
+          </div>
+
+          <!-- Niveau d'expérience -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Niveau d'expérience requis</label>
+            <select
+              formControlName="experienceLevel"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+            >
+              <option value="junior">Débutant (0-2 ans)</option>
+              <option value="intermediate">Intermédiaire (2-5 ans)</option>
+              <option value="senior">Expert (5+ ans)</option>
+            </select>
+          </div>
+
+          <!-- Informations complémentaires -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Informations complémentaires</label>
+            <textarea
+              formControlName="additionalInfo"
+              rows="3"
+              placeholder="Contraintes particulières, outils à utiliser, références inspirantes..."
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white border-t border-gray-200 p-4 flex-shrink-0 z-30 safe-area-inset-bottom">
+    <div class="flex flex-col sm:flex-row gap-3">
+      <button
+        type="button"
+        (click)="goBack()"
+        class="flex-1 py-3 px-4 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors text-base min-h-[44px] touch-manipulation"
+      >
+        Annuler
+      </button>
+      <button
+        type="submit"
+        [disabled]="!missionForm.valid || selectedSkills.length === 0"
+        class="flex-1 py-3 px-4 bg-blue-500 text-white rounded-lg font-medium transition-colors text-base min-h-[44px] touch-manipulation"
+        [class.opacity-50]="!missionForm.valid || selectedSkills.length === 0"
+        [class.cursor-not-allowed]="!missionForm.valid || selectedSkills.length === 0"
+        (click)="onSubmit()"
+      >
+        Publier la mission
+      </button>
+    </div>
+  </div>
+    </form>
+  </div>
+
+  <!-- Boutons d'action fixés en bas avec z-index plus élevé que la navigation -->
+  
+</div>

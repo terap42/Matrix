@@ -1,0 +1,121 @@
+<!-- src/app/admin/mission-management/components/delete-confirmation-modal/delete-confirmation-modal.component.html -->
+
+<div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+  <!-- En-tête -->
+  <div class="flex items-center justify-between p-6 border-b border-gray-200">
+    <div class="flex items-center">
+      <div class="flex-shrink-0">
+        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+          <i class="fas fa-exclamation-triangle text-red-600 text-lg"></i>
+        </div>
+      </div>
+      <div class="ml-3">
+        <h3 class="text-lg font-semibold text-gray-900">
+          Confirmer la suppression
+        </h3>
+      </div>
+    </div>
+    <button 
+      (click)="dismiss()"
+      class="text-gray-400 hover:text-gray-600 transition-colors">
+      <i class="fas fa-times text-xl"></i>
+    </button>
+  </div>
+
+  <!-- Contenu -->
+  <div class="p-6">
+    <div class="mb-4">
+      <p class="text-sm text-gray-600 mb-4">
+        Êtes-vous sûr de vouloir supprimer cette mission ? Cette action est irréversible.
+      </p>
+      
+      <!-- Détails de la mission -->
+      <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <div class="flex items-start space-x-3">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
+              <i class="fas fa-briefcase text-white text-sm"></i>
+            </div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h4 class="text-sm font-semibold text-gray-900 mb-1">
+              {{ mission.title }}
+            </h4>
+            <p class="text-xs text-gray-600 mb-2 line-clamp-2">
+              {{ mission.description }}
+            </p>
+            <div class="flex items-center space-x-4 text-xs text-gray-500">
+              <span class="flex items-center">
+                <i class="fas fa-user mr-1"></i>
+                {{ mission.clientName }}
+              </span>
+              <span class="flex items-center">
+                <i class="fas fa-euro-sign mr-1"></i>
+                {{ mission.budget | currency:mission.currency:'symbol':'1.0-0' }}
+              </span>
+              <span class="flex items-center">
+                <i class="fas fa-users mr-1"></i>
+                {{ mission.applicationsCount }} candidature(s)
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Avertissement -->
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      <div class="flex items-start">
+        <div class="flex-shrink-0">
+          <i class="fas fa-exclamation-triangle text-red-400 text-sm mt-0.5"></i>
+        </div>
+        <div class="ml-3">
+          <h4 class="text-sm font-semibold text-red-800 mb-1">
+            Attention !
+          </h4>
+          <ul class="text-xs text-red-700 space-y-1">
+            <li>• Cette mission sera définitivement supprimée</li>
+            <li>• Toutes les candidatures associées seront perdues</li>
+            <li>• L'historique des conversations sera supprimé</li>
+            <li *ngIf="mission.status === 'in_progress'">
+              • Cette mission est actuellement en cours
+            </li>
+            <li *ngIf="mission.isReported">
+              • Cette mission a été signalée
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Case à cocher de confirmation -->
+    <div class="mb-6">
+      <label class="flex items-start space-x-3 cursor-pointer">
+        <input 
+          type="checkbox" 
+          [(ngModel)]="confirmationChecked"
+          class="mt-1 h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
+        <span class="text-sm text-gray-700">
+          Je comprends que cette action est irréversible et je souhaite supprimer définitivement cette mission.
+        </span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex items-center justify-end space-x-3 p-6 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+    <button
+      (click)="dismiss()"
+      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+      Annuler
+    </button>
+    <button
+      (click)="confirmDelete()"
+      [disabled]="!confirmationChecked"
+      [class]="'px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors ' +
+               (confirmationChecked ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400 cursor-not-allowed')">
+      <i class="fas fa-trash mr-2"></i>
+      Supprimer définitivement
+    </button>
+  </div>
+</div>

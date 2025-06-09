@@ -1,0 +1,248 @@
+<!-- dashboard.page.html -->
+<div class="min-h-screen bg-gray-50 p-6">
+  <!-- Header avec icône tableau de bord -->
+  <div class="mb-8">
+    <div class="flex items-center mb-2">
+      <i class="fas fa-tachometer-alt text-3xl text-blue-600 mr-3"></i>
+      <h1 class="text-3xl font-bold text-gray-900">Tableau de Bord Administrateur</h1>
+    </div>
+    <p class="text-gray-600 ml-12">
+      <i class="fas fa-eye text-gray-400 mr-2"></i>
+      Vue d'ensemble de la plateforme MATRIX
+    </p>
+  </div>
+ 
+  <!-- Stats Cards avec icônes -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div *ngFor="let stat of stats" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+      <div class="flex items-center justify-between mb-4">
+        <!-- Icône avec couleur de fond -->
+        <div [class]="getStatColor(stat.color)" class="w-12 h-12 rounded-lg flex items-center justify-center">
+          <i [class]="'fas fa-' + stat.icon" class="text-white text-xl"></i>
+        </div>
+        <!-- Tendance avec flèche -->
+        <div class="flex items-center space-x-1" [class]="stat.trend > 0 ? 'text-green-600' : 'text-red-600'">
+          <i [class]="stat.trend > 0 ? 'fas fa-arrow-up' : 'fas fa-arrow-down'" class="text-sm"></i>
+          <span class="text-sm font-medium">{{ abs(stat.trend) }}%</span>
+        </div>
+      </div>
+      <h3 class="text-2xl font-bold text-gray-900 mb-1">
+        {{ stat.title === 'Revenus Mensuels' ? formatCurrency(stat.value) : formatNumber(stat.value) }}
+      </h3>
+      <p class="text-gray-600 text-sm">{{ stat.title }}</p>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <!-- Left Column - Chart & Quick Actions -->
+    <div class="lg:col-span-2 space-y-6">
+      
+      <!-- Chart Section avec icône graphique -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center">
+            <i class="fas fa-chart-line text-xl text-gray-600 mr-3"></i>
+            <h2 class="text-xl font-semibold text-gray-900">Évolution des Inscriptions</h2>
+          </div>
+          <div class="flex space-x-2">
+            <button 
+              *ngFor="let period of ['7j', '30j', '90j']"
+              (click)="selectPeriod(period)"
+              [class]="selectedPeriod === period ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+              class="px-3 py-1 text-sm rounded-lg transition-colors">
+              {{ period }}
+            </button>
+          </div>
+        </div>
+        
+        <!-- Placeholder Chart -->
+        <div class="h-64 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg flex items-center justify-center">
+          <div class="text-center">
+            <i class="fas fa-chart-line text-4xl text-blue-400 mb-4"></i>
+            <p class="text-gray-600">Graphique des inscriptions</p>
+            <p class="text-sm text-gray-500 mt-2">
+              <i class="fas fa-info-circle mr-1"></i>
+              Intégration Chart.js recommandée
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions avec icônes colorées -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center mb-6">
+          <i class="fas fa-bolt text-xl text-gray-600 mr-3"></i>
+          <h2 class="text-xl font-semibold text-gray-900">Actions Rapides</h2>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <!-- 👁️ Modération -->
+          <button (click)="handleQuickAction('moderation')" 
+                  class="flex flex-col items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors group">
+            <i class="fas fa-eye text-2xl text-yellow-600 mb-2 group-hover:scale-110 transition-transform"></i>
+            <span class="text-sm font-medium text-yellow-700">Modération</span>
+          </button>
+          
+          <!-- 👥 Utilisateurs -->
+          <button (click)="handleQuickAction('users')" 
+                  class="flex flex-col items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors group">
+            <i class="fas fa-users text-2xl text-blue-600 mb-2 group-hover:scale-110 transition-transform"></i>
+            <span class="text-sm font-medium text-blue-700">Utilisateurs</span>
+          </button>
+          
+          <!-- 💼 Missions -->
+          <button (click)="handleQuickAction('missions')" 
+                  class="flex flex-col items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors group">
+            <i class="fas fa-briefcase text-2xl text-green-600 mb-2 group-hover:scale-110 transition-transform"></i>
+            <span class="text-sm font-medium text-green-700">Missions</span>
+          </button>
+          
+          <!-- ⚙️ Paramètres -->
+          <button (click)="handleQuickAction('settings')" 
+                  class="flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors group">
+            <i class="fas fa-cog text-2xl text-purple-600 mb-2 group-hover:scale-110 transition-transform"></i>
+            <span class="text-sm font-medium text-purple-700">Paramètres</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column - Activities & Top Freelancers -->
+    <div class="space-y-6">
+      
+      <!-- Recent Activities avec icônes d'état -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center">
+            <i class="fas fa-history text-xl text-gray-600 mr-3"></i>
+            <h2 class="text-xl font-semibold text-gray-900">Activités Récentes</h2>
+          </div>
+          <button (click)="viewAllActivities()" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+            <i class="fas fa-external-link-alt mr-1"></i>
+            Voir tout
+          </button>
+        </div>
+        
+        <div class="space-y-4">
+          <div *ngFor="let activity of recentActivities" class="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+            <!-- Icône selon le statut -->
+            <div [class]="getActivityColor(activity.status)" class="flex-shrink-0 mt-1">
+              <i [class]="'fas fa-' + getActivityIcon(activity.status)" class="text-sm"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900 mb-1">{{ activity.type }}</p>
+              <p class="text-sm text-gray-600 mb-2">{{ activity.message }}</p>
+              <p class="text-xs text-gray-500">
+                <i class="fas fa-clock mr-1"></i>
+                {{ activity.time }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Freelancers avec classement -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center">
+            <i class="fas fa-trophy text-xl text-yellow-500 mr-3"></i>
+            <h2 class="text-xl font-semibold text-gray-900">Top Freelances</h2>
+          </div>
+          <button (click)="viewAllFreelancers()" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+            <i class="fas fa-external-link-alt mr-1"></i>
+            Voir tout
+          </button>
+        </div>
+        
+        <div class="space-y-4">
+          <div *ngFor="let freelancer of topFreelancers; let i = index" 
+               class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+            <div class="flex-shrink-0 relative">
+              <img [src]="freelancer.avatar" 
+                   [alt]="freelancer.name"
+                   class="w-10 h-10 rounded-full object-cover border-2 border-gray-200">
+              <!-- Badge de classement -->
+              <div class="absolute -top-1 -left-1 w-6 h-6 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                {{ i + 1 }}
+              </div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-gray-900 truncate">
+                <i class="fas fa-user-circle text-gray-400 mr-1"></i>
+                {{ freelancer.name }}
+              </p>
+              <p class="text-xs text-gray-600 truncate">
+                <i class="fas fa-tag text-gray-400 mr-1"></i>
+                {{ freelancer.specialty }}
+              </p>
+              <div class="flex items-center space-x-2 mt-1">
+                <!-- Note avec étoiles -->
+                <div class="flex items-center space-x-1">
+                  <i class="fas fa-star text-yellow-400 text-xs"></i>
+                  <span class="text-xs text-gray-600">{{ freelancer.rating }}</span>
+                </div>
+                <span class="text-xs text-gray-400">•</span>
+                <!-- Nombre de missions -->
+                <div class="flex items-center space-x-1">
+                  <i class="fas fa-briefcase text-gray-400 text-xs"></i>
+                  <span class="text-xs text-gray-600">{{ freelancer.missions }} missions</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- System Status avec icônes de services -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center">
+            <i class="fas fa-server text-xl text-gray-600 mr-3"></i>
+            <h2 class="text-xl font-semibold text-gray-900">État du Système</h2>
+          </div>
+          <button (click)="refreshData()" class="text-gray-600 hover:text-gray-700">
+            <i class="fas fa-sync-alt text-sm"></i>
+          </button>
+        </div>
+        
+        <div class="space-y-4">
+          <div *ngFor="let service of systemServices" class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <!-- Indicateur de statut -->
+              <div [class]="getSystemStatusColor(service.status)" class="w-3 h-3 rounded-full"></div>
+              <!-- Icône du service -->
+              <i [class]="'fas fa-' + service.icon" class="text-gray-400 text-sm"></i>
+              <span class="text-sm text-gray-700">{{ service.service }}</span>
+            </div>
+            <span [class]="getSystemStatusTextColor(service.status)" class="text-sm font-medium">
+              {{ getSystemStatusText(service.status) }}
+            </span>
+          </div>
+        </div>
+        
+        <!-- Dernière vérification -->
+        <div class="mt-6 pt-4 border-t border-gray-200">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-600">
+              <i class="fas fa-sync-alt text-gray-400 mr-1"></i>
+              Dernière vérification
+            </span>
+            <span class="text-gray-900 font-medium">Il y a 2 min</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bouton d'actualisation flottant -->
+  <div class="fixed bottom-6 right-6">
+    <button (click)="refreshData()" 
+            class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-colors">
+      <i class="fas fa-sync-alt text-lg"></i>
+    </button>
+  </div>
+</div>
+
+<!-- Import FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">

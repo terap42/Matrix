@@ -1,0 +1,22 @@
+<!-- Header -->
+<ion-header [translucent]="true" class="ion-no-border pt-safe-offset">
+  <ion-toolbar>
+    <ion-buttons *ngIf="showBackButton" slot="start">
+      <ion-back-button slot="icon-only" (click)="goBack('home')" class="!text-green-700" text="Retour"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="font-bold" style="--color: #000000">{{ title }}</ion-title>
+    <ion-buttons slot="end" *ngIf="iconEnd">
+      <ion-button (click)="onClick()">
+        <ion-icon slot="icon-only" name="{{iconEnd}}"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+
+<!-- Content -->
+<ion-content [fullscreen]="true" class="!bg-gray-100">
+  <div class="main-content md:container md:mx-auto md:px-4">
+    <ng-content></ng-content>
+  </div>
+</ion-content>

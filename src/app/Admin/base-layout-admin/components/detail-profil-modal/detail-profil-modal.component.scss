@@ -1,0 +1,32 @@
+.profile-detail-modal {
+    --width: 95%;
+    --height: 80%;
+    --border-radius: 10px;
+    --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+  }
+  
+  ion-content {
+    --padding-top: 16px;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --padding-bottom: 16px;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 20px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+  
+  [fadeInUp] {
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+  
+  .bg-gradient-to-r {
+    background: linear-gradient(to right, var(--ion-color-primary), var(--ion-color-secondary));
+  }

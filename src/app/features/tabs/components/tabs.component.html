@@ -1,0 +1,41 @@
+<div class="h-full flex flex-col">
+  <div class="flex-1 pb-20">
+    <!-- Router outlet pour l'affichage des pages -->
+    <router-outlet></router-outlet>
+  </div>
+  <!-- Affiche la barre de navigation SEULEMENT si on n'est PAS sur la page de détail -->
+  <div 
+    class="fixed bottom-0 left-0 right-0 bg-blue-700 text-white z-50 pb-safe-offset"
+    *ngIf="!isOnDetailsPage()"
+  >
+    <div class="flex justify-between items-center">
+      <a (click)="navigate('home')" class="flex-1 flex flex-col items-center justify-center py-2"
+        [class.opacity-100]="isActive('home')" [class.opacity-60]="!isActive('home')">
+        <ion-icon name="home" class="text-2xl"></ion-icon>
+        <span class="text-xs">Accueil</span>
+      </a>
+      <a (click)="navigate('missions')" class="flex-1 flex flex-col items-center justify-center py-2"
+        [class.opacity-100]="isActive('missions')" [class.opacity-60]="!isActive('missions')">
+        <ion-icon name="information-circle" class="text-2xl"></ion-icon>
+        <span class="text-xs">Missions</span>
+      </a>
+      <a (click)="navigate('messageriefrree')" class="flex-1 flex flex-col items-center justify-center py-2"
+        [class.opacity-100]="isActive('messageriefrree')" [class.opacity-60]="!isActive('messageriefrree')">
+        <ion-icon name="book" class="text-2xl"></ion-icon>
+        <span class="text-xs">Messagerie</span>
+      </a>
+      <!-- <a (click)="navigate('settings')" class="flex-1 flex flex-col items-center justify-center py-2"
+        [class.opacity-100]="isActive('settings')" [class.opacity-60]="!isActive('settings')">
+        <ion-icon name="settings" class="text-2xl"></ion-icon>
+        <span class="text-xs">Settings</span>
+      </a> -->
+     
+      <a (click)="openUserProfileModal()" class="flex-1 flex flex-col items-center justify-center py-2"
+        [class.opacity-100]="isActive('profile')" [class.opacity-60]="!isActive('profile')">
+        <ion-icon name="person" class="text-2xl"></ion-icon>
+        <span class="text-xs">Profil</span>
+      </a>
+    </div>
+  </div>
+  <!-- </ion-content> -->
+</div>

@@ -1,0 +1,69 @@
+// src/app/admin/mission-management/components/delete-confirmation-modal/delete-confirmation-modal.component.scss
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// Animation d'entrée pour le modal
+:host {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Style pour la checkbox
+input[type="checkbox"] {
+  &:checked {
+    background-color: #dc2626;
+    border-color: #dc2626;
+    
+    &:focus {
+      ring-color: #dc2626;
+    }
+  }
+}
+
+// Hover effects pour les boutons
+button {
+  transition: all 0.2s ease-in-out;
+  
+  &:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+}
+
+// Style spécifique pour le bouton de suppression
+.delete-button {
+  &:not(:disabled) {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    
+    &:hover {
+      background: linear-gradient(135deg, #b91c1c, #991b1b);
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 480px) {
+  .max-w-md {
+    max-width: calc(100vw - 2rem);
+  }
+  
+  .mx-4 {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+}

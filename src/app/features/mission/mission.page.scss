@@ -1,0 +1,148 @@
+// Styles personnalisés pour la page de création de mission
+.create-mission-page {
+  // Animation d'entrée pour les sections
+  .mission-section {
+    animation: slideInUp 0.3s ease-out;
+  }
+
+  // Style pour les champs en erreur
+  .form-error {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  }
+
+  // Animation pour les compétences sélectionnées
+  .skill-chip {
+    transition: all 0.2s ease-in-out;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    &.selected {
+      animation: pulse 0.3s ease-in-out;
+    }
+  }
+
+  // Style pour les boutons radio personnalisés
+  .custom-radio {
+    .radio-button {
+      transition: all 0.2s ease-in-out;
+      
+      &:hover {
+        border-color: #3b82f6;
+        background-color: #f8fafc;
+      }
+
+      &.selected {
+        border-color: #3b82f6;
+        background-color: #eff6ff;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+    }
+  }
+
+  // Animations pour les niveaux d'urgence
+  .urgency-level {
+    transition: all 0.2s ease-in-out;
+    
+    &:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    &.selected {
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+  }
+
+  // Style pour le bouton flottant de soumission
+  .floating-actions {
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 255, 255, 0.95);
+    
+    .submit-button {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+      transition: all 0.3s ease;
+
+      &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+      }
+
+      &:disabled {
+        background: #9ca3af;
+        box-shadow: none;
+      }
+    }
+  }
+
+  // Style pour les icônes des sections
+  .section-icon {
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: rotate(5deg) scale(1.1);
+    }
+  }
+
+  // Responsive design
+  @media (max-width: 640px) {
+    .grid-cols-2 {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .skill-categories {
+      .skill-chip {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+      }
+    }
+  }
+}
+
+// Animations keyframes
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Scrollbar personnalisée
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

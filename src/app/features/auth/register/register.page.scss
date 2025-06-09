@@ -1,0 +1,11 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden; /* empêche le body de scroll, pour que le scroll soit dans la div */
+}
+
+.min-h-screen, .h-screen {
+  height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* scroll fluide sur iOS */
+}

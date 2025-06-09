@@ -1,0 +1,114 @@
+<div class="relative">
+  <!-- Profil miniature (toujours visible) -->
+  <div (click)="togglePopup()" class="flex items-center cursor-pointer">
+    <div class="h-9 w-9 rounded-full overflow-hidden">
+      <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profile" class="h-full w-full object-cover">
+    </div>
+    <div class="ml-2">
+      <div class="text-sm font-medium text-gray-900">Dumont</div>
+      <div class="text-xs text-gray-500">Admin</div>
+    </div>
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd"
+        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+        clip-rule="evenodd" />
+    </svg>
+  </div>
+
+  <!-- Overlay pour fermer le popup en cliquant à l'extérieur -->
+  <div *ngIf="showPopup" (click)="togglePopup()" 
+       class="fixed inset-0 bg-black bg-opacity-30 z-40 flex items-center justify-center">
+    
+    <!-- Popup de profil détaillé -->
+    <div (click)="stopPropagation($event)" 
+         class="bg-white rounded-xl shadow-lg overflow-hidden w-full max-w-sm transform transition-all duration-300 ease-in-out animate-popup"
+         [ngClass]="{'scale-100 opacity-100': showPopup, 'scale-95 opacity-0': !showPopup}">
+      
+      <!-- En-tête du profil -->
+      <div class="relative">
+        <div class="h-32 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+        <div class="absolute -bottom-16 left-4 p-1 bg-white rounded-full shadow-md">
+          <div class="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Dumont" class="h-full w-full object-cover" />
+          </div>
+          <div *ngIf="isAdmin" class="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-1 shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        </div>
+        <div class="absolute top-2 right-2">
+          <button 
+            (click)="toggleActions()" 
+            class="text-white hover:text-gray-200 focus:outline-none transition-transform duration-200 hover:scale-110"
+            aria-label="Plus d'options"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+            </svg>
+          </button>
+          <!-- Actions popup -->
+          <div *ngIf="showActions" class="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Modifier le profil</a>
+            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Changer le mot de passe</a>
+            <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Désactiver le compte</a>
+          </div>
+        </div>
+        
+        <!-- Bouton fermer -->
+        <button (click)="togglePopup()" class="absolute top-2 left-2 text-white hover:text-gray-200 focus:outline-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Informations du profil -->
+      <div class="pt-16 px-4 pb-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-xl font-bold text-gray-800">Dumont</h2>
+            <p class="text-gray-600">Admin</p>
+          </div>
+          <button 
+            *ngIf="isAdmin"
+            (click)="toggleEditMode()" 
+            class="text-blue-600 hover:text-blue-800 focus:outline-none"
+            aria-label="Modifier le profil"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Sections du profil -->
+        <div class="mt-6 space-y-4">
+          <div *ngFor="let section of sections; let i = index" 
+              class="flex items-center py-2 border-b border-gray-100"
+              [ngStyle]="{'animation-delay': (i * 100) + 'ms'}">
+            <div class="w-8 h-8 flex items-center justify-center text-blue-500">
+              <svg *ngIf="section.icon === 'email'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <svg *ngIf="section.icon === 'phone'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+              <svg *ngIf="section.icon === 'location'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <svg *ngIf="section.icon === 'role'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-xs text-gray-500">{{ section.title }}</p>
+              <p class="text-gray-800">{{ section.value }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

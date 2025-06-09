@@ -1,0 +1,86 @@
+<!-- detail-fonds.component.html -->
+<ion-content class="ion-padding-0 bg-gray-100">
+  <div class="flex flex-col h-full md:container md:mx-auto md:px-4">
+    <!-- Header avec boutons de fermeture et favori -->
+    <div class="flex justify-between items-center p-4 bg-gray-100 sticky top-0 z-10">
+      <button (click)="dismissModal()" class="text-gray-700 p-1 rounded-full hover:bg-gray-200 focus:outline-none">
+        <ion-icon name="close-outline" class="text-2xl"></ion-icon>
+      </button>
+      <button (click)="toggleFavorite()" class="p-1 rounded-full hover:bg-gray-200 focus:outline-none">
+        <ion-icon [name]="isFavorite ? 'heart' : 'heart-outline'"
+          [ngClass]="isFavorite ? 'text-red-500' : 'text-gray-700'" class="text-2xl"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Navigation par onglets - Également en sticky -->
+    <div class="px-4 pt-2 pb-2 bg-gray-100 sticky top-16 z-10">
+      <div class="flex space-x-6 justify-center">
+        <div *ngFor="let tab of tabs" (click)="setActiveTab(tab)" class="relative pb-2 cursor-pointer">
+          <span [ngClass]="activeTab === tab ? 'font-semibold' : 'text-gray-500'">
+            {{ tab }}
+          </span>
+          <div *ngIf="activeTab === tab"
+            class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2 h-2 rounded-full bg-yellow-400"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenu défilable -->
+    <div class="flex-1 overflow-y-auto">
+      <div class="px-4 pb-8">
+        <!-- Image de la mosquée -->
+        <div class="relative w-full h-48 rounded-xl overflow-hidden mt-4 mb-4">
+          <img [src]="campaign.imageUrl" alt="Mosquée Medina Baye" class="w-full h-full object-cover" />
+        </div>
+
+        <!-- Détails de la campagne -->
+        <div class="pb-4">
+          <h1 class="text-2xl font-bold mb-1">{{ campaign.title }}</h1>
+          <p class="text-gray-600 text-sm mb-4">{{ campaign.organization }}</p>
+
+          <p class="text-sm text-gray-700 mb-6">
+            {{ campaign.description }}
+          </p>
+
+          <!-- Section de progression -->
+          <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
+            <span class="font-semibold">{{ campaign.currentAmount.toLocaleString() }} FCFA</span>
+            <span>/ {{ campaign.targetAmount.toLocaleString() }} FCFA</span>
+          </div>
+
+          <div class="w-full bg-white h-2 rounded-full mb-4">
+            <div class="bg-green-700 h-2 rounded-full" [style.width.%]="campaign.percentageCollected"></div>
+          </div>
+
+          <!-- Statistiques -->
+          <div class="flex justify-between mb-8">
+            <div class="text-center">
+              <p class="text-green-700 font-semibold">{{ campaign.percentageCollected }}%</p>
+              <p class="text-xs text-gray-500">Déjà collectés</p>
+            </div>
+
+            <div class="text-center">
+              <p class="font-semibold">{{ campaign.contributors }}</p>
+              <p class="text-xs text-gray-500">Contributeurs</p>
+            </div>
+
+            <div class="text-center">
+              <p class="font-semibold">{{ campaign.daysRemaining }}</p>
+              <p class="text-xs text-gray-500">Jours restants</p>
+            </div>
+          </div>
+
+          <!-- Solde utilisateur -->
+          <div class="bg-white p-4 rounded mb-6">
+            <p class="text-sm text-gray-600 mb-1">Mon solde</p>
+            <p class="text-xl font-bold">{{ balance.toLocaleString() }} FCFA</p>
+          </div>
+
+          <!-- Bouton de contribution -->
+          <app-button text="Je contribue" size="xl" radius="md" variant="solid" color="primary" width="full" (buttonClick)="contribute()">
+          </app-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
