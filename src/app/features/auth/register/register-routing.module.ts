@@ -1,10 +1,12 @@
+// src/app/features/auth/register/register-routing.module.ts
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
+import { RegisterPage } from './register.page';
 
 const routes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./register.page').then(m => m.RegisterPage)  // Utilisation de loadComponent
+    component: RegisterPage // ✅ Utiliser 'component' au lieu de 'loadComponent'
   }
 ];
 

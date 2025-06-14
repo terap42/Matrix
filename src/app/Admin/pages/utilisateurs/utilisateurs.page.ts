@@ -1,24 +1,16 @@
-import { Component, OnInit } from '@angular/core';
-import { ModalController, AlertController, ToastController } from '@ionic/angular';
+// src/app/Admin/pages/utilisateurs/utilisateurs.page.ts
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
+import { AlertController, ToastController, LoadingController } from '@ionic/angular';
+import { Subscription } from 'rxjs';
+import { AuthService } from '../../../features/auth/services/auth.service';
 
-interface User {
-  id: string;
-  nom: string;
-  prenom: string;
-  email: string;
-  type: 'freelance' | 'client';
-  specialite?: string;
-  statut: 'actif' | 'inactif' | 'suspendu';
-  dateInscription: Date;
-  derniereConnexion: Date;
-  nombreMissions: number;
-  noteGlobale: number;
-  avatar?: string;
-  telephone?: string;
-  pays: string;
-  ville: string;
-  signalements: number;
-}
+import { 
+  UsersManagementService, 
+  User, 
+  UserStats, 
+  UserFilters 
+} from './services/users-management.service';
 
 @Component({
   selector: 'app-utilisateurs',
@@ -26,18 +18,20 @@ interface User {
   styleUrls: ['./utilisateurs.page.scss'],
   standalone: false,
 })
-export class UtilisateursPage implements OnInit {
+export class UtilisateursPage implements OnInit, OnDestroy {
 
+  // Données
   users: User[] = [];
   filteredUsers: User[] = [];
   selectedUsers: string[] = [];
+  isLoading = false;
+  
+  // Modals
   showFilters = false;
   showAddModal = false;
   showEditModal = false;
   showViewModal = false;
   selectedUser: User | null = null;
-
-  // Nouveau utilisateur pour l'ajout
   newUser: Partial<User> = {};
 
   // Filtres
@@ -55,9 +49,10 @@ export class UtilisateursPage implements OnInit {
   currentPage = 1;
   itemsPerPage = 10;
   totalPages = 0;
+  totalItems = 0;
 
   // Stats
-  stats = {
+  stats: UserStats = {
     total: 0,
     freelances: 0,
     clients: 0,
@@ -66,6 +61,7 @@ export class UtilisateursPage implements OnInit {
     suspendus: 0
   };
 
+  // Options
   specialites = [
     'Développeur Web',
     'Designer UI/UX',
@@ -79,119 +75,382 @@ export class UtilisateursPage implements OnInit {
     'Consultant'
   ];
 
+  private subscriptions: Subscription[] = [];
+  private searchTimeout: any;
+
   constructor(
-    private modalController: ModalController,
+    private router: Router,
     private alertController: AlertController,
-    private toastController: ToastController
-  ) {}
+    private toastController: ToastController,
+    private loadingController: LoadingController,
+    private authService: AuthService,
+    private usersService: UsersManagementService
+  ) {
+    console.log('🏗️ Composant UtilisateursPage initialisé');
+  }
 
   ngOnInit() {
-    this.loadUsers();
-    this.calculateStats();
-  }
-
-  loadUsers() {
-    // Simulation de données - à remplacer par votre service Firebase
-    this.users = [
-      {
-        id: '1',
-        nom: 'Diallo',
-        prenom: 'Amadou',
-        email: 'amadou.diallo@email.com',
-        type: 'freelance',
-        specialite: 'Développeur Web',
-        statut: 'actif',
-        dateInscription: new Date('2024-01-15'),
-        derniereConnexion: new Date('2025-05-28'),
-        nombreMissions: 12,
-        noteGlobale: 4.5,
-        telephone: '+221 77 123 45 67',
-        pays: 'Sénégal',
-        ville: 'Dakar',
-        signalements: 0,
-        avatar: 'assets/images/avatar1.jpg'
-      },
-      {
-        id: '2',
-        nom: 'Sow',
-        prenom: 'Fatou',
-        email: 'fatou.sow@email.com',
-        type: 'client',
-        statut: 'actif',
-        dateInscription: new Date('2024-02-20'),
-        derniereConnexion: new Date('2025-05-29'),
-        nombreMissions: 8,
-        noteGlobale: 4.2,
-        telephone: '+221 76 987 65 43',
-        pays: 'Sénégal',
-        ville: 'Thiès',
-        signalements: 1,
-        avatar: 'assets/images/avatar2.jpg'
-      },
-      {
-        id: '3',
-        nom: 'Ba',
-        prenom: 'Moussa',
-        email: 'moussa.ba@email.com',
-        type: 'freelance',
-        specialite: 'Designer UI/UX',
-        statut: 'suspendu',
-        dateInscription: new Date('2024-03-10'),
-        derniereConnexion: new Date('2025-05-25'),
-        nombreMissions: 5,
-        noteGlobale: 3.8,
-        telephone: '+221 78 456 78 90',
-        pays: 'Sénégal',
-        ville: 'Saint-Louis',
-        signalements: 3
-      }
-    ];
+    console.log('🚀 === DÉMARRAGE DU COMPOSANT UTILISATEURS ===');
     
-    this.applyFilters();
-    this.calculateStats();
+    // 🔧 CORRECTION PRINCIPALE : Debug authentification immédiat
+    this.debugAuthentication();
+    
+    this.checkAuthAndInit();
   }
 
-  calculateStats() {
-    this.stats.total = this.users.length;
-    this.stats.freelances = this.users.filter(u => u.type === 'freelance').length;
-    this.stats.clients = this.users.filter(u => u.type === 'client').length;
-    this.stats.actifs = this.users.filter(u => u.statut === 'actif').length;
-    this.stats.inactifs = this.users.filter(u => u.statut === 'inactif').length;
-    this.stats.suspendus = this.users.filter(u => u.statut === 'suspendu').length;
+  ngOnDestroy() {
+    console.log('🧹 Nettoyage des subscriptions');
+    this.cleanup();
+  }
+
+  // 🆕 MÉTHODE DEBUG AUTHENTIFICATION DÉTAILLÉE (corrigée pour AuthService)
+  debugAuthentication() {
+    console.log('🔍 === DEBUG AUTHENTIFICATION DÉTAILLÉ ===');
+    
+    // Vérifier AuthService directement
+    console.log('🔍 AuthService état:', {
+      isLoggedIn: this.authService.isLoggedIn(),
+      isAdmin: this.authService.isAdmin(),
+      token: this.authService.getToken() ? 'PRÉSENT' : 'ABSENT',
+      currentUser: this.authService.getCurrentUserValue()
+    });
+    
+    if (this.authService.getToken()) {
+      const token = this.authService.getToken()!;
+      console.log('🎫 Token preview:', token.substring(0, 30) + '...');
+    }
+    
+    // Vérifier localStorage (pour comparaison)
+    console.log('🔍 LocalStorage (pour info):', {
+      auth_token: localStorage.getItem('auth_token'),
+      token: localStorage.getItem('token'),
+      current_user: localStorage.getItem('current_user')
+    });
+    
+    const currentUser = this.authService.getCurrentUserValue();
+    if (currentUser) {
+      console.log('🔍 Utilisateur connecté:', {
+        id: currentUser.id,
+        email: currentUser.email,
+        user_type: currentUser.user_type,
+        first_name: currentUser.first_name,
+        last_name: currentUser.last_name
+      });
+    }
+    
+    console.log('=======================================');
+  }
+
+  private async checkAuthAndInit() {
+    console.log('🔍 === VÉRIFICATION AUTHENTIFICATION ===');
+    
+    // 🔧 CORRECTION : Utiliser AuthService directement
+    if (!this.authService.isLoggedIn()) {
+      console.error('❌ Utilisateur non connecté selon AuthService');
+      await this.showToast('Veuillez vous connecter', 'warning');
+      this.router.navigate(['/login']);
+      return;
+    }
+    
+    console.log('✅ Utilisateur connecté selon AuthService');
+    
+    // Vérifier si l'utilisateur est admin
+    if (!this.authService.isAdmin()) {
+      console.error('❌ Utilisateur non administrateur');
+      await this.showToast('Accès refusé - Droits administrateur requis', 'danger');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    console.log('✅ Permissions admin validées');
+    
+    const currentUser = this.authService.getCurrentUserValue();
+    if (currentUser) {
+      console.log('👤 Admin connecté:', {
+        email: currentUser.email,
+        name: `${currentUser.first_name} ${currentUser.last_name}`,
+        type: currentUser.user_type
+      });
+      await this.showToast(`Bienvenue ${currentUser.first_name}`, 'success');
+    }
+
+    this.setupSubscriptions();
+    await this.initializeData();
+  }
+
+  // 🆕 MÉTHODES AUXILIAIRES POUR L'AUTHENTIFICATION
+  private checkAdminFromStorage(): boolean {
+    try {
+      const currentUser = localStorage.getItem('current_user');
+      if (currentUser) {
+        const user = JSON.parse(currentUser);
+        return user.user_type === 'admin';
+      }
+    } catch (e) {
+      console.error('Erreur parsing user pour vérification admin:', e);
+    }
+    return false;
+  }
+
+  private getCurrentUserFromStorage(): any {
+    try {
+      const currentUser = localStorage.getItem('current_user');
+      if (currentUser) {
+        return JSON.parse(currentUser);
+      }
+    } catch (e) {
+      console.error('Erreur parsing user storage:', e);
+    }
+    return null;
+  }
+
+  // ✅ CORRECTION PRINCIPALE: Subscriptions réactives
+  private setupSubscriptions() {
+    console.log('🔗 Configuration des subscriptions réactives');
+    
+    // Écouter les changements des statistiques
+    const statsSubscription = this.usersService.stats$.subscribe({
+      next: (stats) => {
+        console.log('📊 Stats mises à jour automatiquement:', stats);
+        this.stats = stats;
+      },
+      error: (error) => {
+        console.error('❌ Erreur dans stats subscription:', error);
+      }
+    });
+    this.subscriptions.push(statsSubscription);
+
+    // Écouter les changements des utilisateurs
+    const usersSubscription = this.usersService.users$.subscribe({
+      next: (users) => {
+        console.log('👥 Utilisateurs mis à jour automatiquement:', users.length);
+        this.users = users;
+        this.filteredUsers = [...users];
+        this.applyCurrentFilters();
+        
+        // Mettre à jour la pagination locale
+        this.updateLocalPagination();
+        
+        console.log('✅ État local synchronisé:', {
+          users: this.users.length,
+          filteredUsers: this.filteredUsers.length,
+          totalItems: this.totalItems
+        });
+      },
+      error: (error) => {
+        console.error('❌ Erreur dans users subscription:', error);
+      }
+    });
+    this.subscriptions.push(usersSubscription);
+
+    // Écouter l'état de chargement
+    const loadingSubscription = this.usersService.loading$.subscribe({
+      next: (isLoading) => {
+        console.log('⏳ État de chargement synchronisé:', isLoading);
+        this.isLoading = isLoading;
+      }
+    });
+    this.subscriptions.push(loadingSubscription);
+  }
+
+  private async initializeData() {
+    console.log('📋 Initialisation des données');
+    
+    try {
+      // 🔧 CORRECTION : Vérifier AuthService directement
+      if (!this.authService.isLoggedIn()) {
+        console.error('❌ AuthService indique utilisateur non connecté');
+        await this.showToast('Session expirée', 'danger');
+        this.router.navigate(['/login']);
+        return;
+      }
+      
+      console.log('🎫 AuthService confirme utilisateur connecté');
+
+      // Charger les données initiales
+      await this.loadUsers();
+      await this.loadStats();
+      
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'initialisation:', error);
+      await this.showToast('Erreur lors de l\'initialisation', 'danger');
+    }
+  }
+
+  // ✅ CORRECTION: Version simplifiée de loadUsers avec gestion d'erreur token
+  async loadUsers() {
+    console.log('📊 === CHARGEMENT DES UTILISATEURS ===');
+    
+    if (this.isLoading) {
+      console.log('⏳ Chargement déjà en cours, ignorer');
+      return;
+    }
+
+    try {
+      // 🔧 VÉRIFICATION AUTHSERVICE AVANT APPEL API
+      if (!this.authService.isLoggedIn()) {
+        console.error('❌ AuthService indique utilisateur non connecté');
+        await this.showToast('Session expirée, reconnexion nécessaire', 'warning');
+        this.router.navigate(['/login']);
+        return;
+      }
+
+      const filters: UserFilters = {
+        search: this.filters.search,
+        type: this.filters.type,
+        status: this.filters.statut,
+        page: this.currentPage,
+        limit: this.itemsPerPage
+      };
+
+      console.log('📊 Filtres appliqués:', filters);
+      console.log('🎫 AuthService confirme utilisateur connecté');
+
+      // ✅ CHANGEMENT PRINCIPAL: Utilisation simple du service
+      this.usersService.getUsers(filters).subscribe({
+        next: (response) => {
+          console.log('✅ === DONNÉES REÇUES ===');
+          console.log('📊 Réponse:', response);
+          
+          // Mise à jour de la pagination depuis l'API
+          this.totalItems = response.pagination?.total || 0;
+          this.totalPages = response.pagination?.total_pages || 0;
+          this.currentPage = response.pagination?.current_page || 1;
+          
+          console.log('✅ Pagination mise à jour:', {
+            totalItems: this.totalItems,
+            totalPages: this.totalPages,
+            currentPage: this.currentPage
+          });
+
+          if (response.users.length === 0) {
+            console.warn('⚠️ Aucun utilisateur retourné par l\'API');
+          } else {
+            console.log('🎉 Utilisateurs chargés avec succès:', response.users.length);
+          }
+        },
+        error: async (error) => {
+          console.error('❌ === ERREUR LORS DU CHARGEMENT ===');
+          console.error('❌ Erreur:', error);
+          
+          if (error.message && error.message.includes('Token')) {
+            console.error('🚫 Problème de token détecté');
+            await this.showToast('Session expirée, veuillez vous reconnecter', 'warning');
+            this.router.navigate(['/login']);
+          } else {
+            await this.showToast('Erreur lors du chargement des utilisateurs', 'danger');
+          }
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ === ERREUR CRITIQUE ===');
+      console.error('❌ Erreur dans loadUsers:', error);
+      await this.showToast('Erreur lors du chargement des utilisateurs', 'danger');
+    }
+  }
+
+  async loadStats() {
+    try {
+      console.log('📈 Chargement des statistiques');
+      
+      this.usersService.getStats().subscribe({
+        next: (stats) => {
+          console.log('📈 Statistiques chargées:', stats);
+          // Les stats sont déjà mises à jour via la subscription
+        },
+        error: (error) => {
+          console.error('❌ Erreur lors du chargement des statistiques:', error);
+          // Les stats ne sont pas critiques, utiliser des valeurs par défaut
+          this.stats = {
+            total: 0,
+            freelances: 0,
+            clients: 0,
+            actifs: 0,
+            inactifs: 0,
+            suspendus: 0
+          };
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ Erreur lors du chargement des statistiques:', error);
+    }
+  }
+
+  // ✅ NOUVELLE MÉTHODE: Appliquer les filtres locaux actuels
+  private applyCurrentFilters() {
+    console.log('🔽 Application des filtres locaux actuels');
+    let filtered = [...this.users];
+
+    // Filtres locaux (non gérés par l'API)
+    if (this.filters.specialite) {
+      filtered = filtered.filter(user => user.specialite === this.filters.specialite);
+    }
+
+    if (this.filters.pays) {
+      filtered = filtered.filter(user => 
+        user.pays?.toLowerCase().includes(this.filters.pays.toLowerCase())
+      );
+    }
+
+    if (this.filters.signalements) {
+      filtered = filtered.filter(user => user.signalements > 0);
+    }
+
+    this.filteredUsers = filtered;
+    console.log('🔽 Filtres locaux appliqués:', {
+      original: this.users.length,
+      filtered: this.filteredUsers.length
+    });
+  }
+
+  // ✅ NOUVELLE MÉTHODE: Mettre à jour la pagination locale
+  private updateLocalPagination() {
+    if (this.filteredUsers.length > 0 && this.totalItems === 0) {
+      // Si on utilise le filtrage local, calculer la pagination localement
+      this.totalItems = this.filteredUsers.length;
+      this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
+    }
+  }
+
+  // Filtres et recherche
+  onSearchChange(event: any) {
+    const searchValue = event?.target?.value || '';
+    this.filters.search = searchValue.trim();
+    console.log('🔍 Recherche:', this.filters.search);
+    
+    // Débounce la recherche
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      this.currentPage = 1;
+      this.loadUsers();
+    }, 500);
+  }
+
+  async filterByType(type: string) {
+    this.filters.type = type;
+    this.currentPage = 1;
+    console.log('🔽 Filtre par type:', type);
+    await this.loadUsers();
+  }
+
+  async filterByStatus(status: string) {
+    this.filters.statut = status;
+    this.currentPage = 1;
+    console.log('🔽 Filtre par statut:', status);
+    await this.loadUsers();
   }
 
   applyFilters() {
-    this.filteredUsers = this.users.filter(user => {
-      const matchSearch = !this.filters.search || 
-        user.nom.toLowerCase().includes(this.filters.search.toLowerCase()) ||
-        user.prenom.toLowerCase().includes(this.filters.search.toLowerCase()) ||
-        user.email.toLowerCase().includes(this.filters.search.toLowerCase());
-      
-      const matchType = !this.filters.type || user.type === this.filters.type;
-      const matchStatut = !this.filters.statut || user.statut === this.filters.statut;
-      const matchSpecialite = !this.filters.specialite || user.specialite === this.filters.specialite;
-      const matchPays = !this.filters.pays || user.pays.toLowerCase().includes(this.filters.pays.toLowerCase());
-      const matchSignalements = !this.filters.signalements || user.signalements > 0;
-
-      return matchSearch && matchType && matchStatut && matchSpecialite && matchPays && matchSignalements;
-    });
-
-    this.totalPages = Math.ceil(this.filteredUsers.length / this.itemsPerPage);
+    console.log('🔽 Application des filtres locaux');
+    this.applyCurrentFilters();
     this.currentPage = 1;
-  }
-
-  getPaginatedUsers() {
-    const start = (this.currentPage - 1) * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-    return this.filteredUsers.slice(start, end);
-  }
-
-  onSearchChange(event: any) {
-    this.filters.search = event.target.value;
-    this.applyFilters();
+    this.updateLocalPagination();
   }
 
   clearFilters() {
+    console.log('🧹 Nettoyage des filtres');
     this.filters = {
       search: '',
       type: '',
@@ -201,15 +460,46 @@ export class UtilisateursPage implements OnInit {
       dateInscription: '',
       signalements: false
     };
-    this.applyFilters();
+    this.currentPage = 1;
+    this.loadUsers();
   }
 
   toggleFilters() {
     this.showFilters = !this.showFilters;
+    console.log('🔽 Toggle filtres:', this.showFilters);
   }
 
-  // CORRECTION : Initialiser newUser
+  // Pagination
+  getPaginatedUsers() {
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    return this.filteredUsers.slice(start, end);
+  }
+
+  changePage(page: number) {
+    if (page >= 1 && page <= this.totalPages && !this.isLoading) {
+      console.log('📄 Changement de page:', page);
+      this.currentPage = page;
+      this.loadUsers();
+    }
+  }
+
+  getPaginationArray(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    const start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    const end = Math.min(this.totalPages, start + maxVisible - 1);
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
+  }
+
+  // Gestion des modals
   openAddModal() {
+    console.log('➕ Ouverture modal d\'ajout');
     this.newUser = {
       nom: '',
       prenom: '',
@@ -230,16 +520,19 @@ export class UtilisateursPage implements OnInit {
   }
 
   openEditModal(user: User) {
+    console.log('✏️ Ouverture modal d\'édition pour:', user.email);
     this.selectedUser = { ...user };
     this.showEditModal = true;
   }
 
   openViewModal(user: User) {
+    console.log('👁️ Ouverture modal de détail pour:', user.email);
     this.selectedUser = user;
     this.showViewModal = true;
   }
 
   closeModal(modalType: string) {
+    console.log('❌ Fermeture modal:', modalType);
     switch(modalType) {
       case 'add':
         this.showAddModal = false;
@@ -255,6 +548,7 @@ export class UtilisateursPage implements OnInit {
     this.selectedUser = null;
   }
 
+  // Actions sur les utilisateurs
   async confirmAction(action: string, user: User) {
     const alert = await this.alertController.create({
       header: 'Confirmation',
@@ -276,39 +570,188 @@ export class UtilisateursPage implements OnInit {
     await alert.present();
   }
 
-  executeAction(action: string, user: User) {
-    switch(action) {
-      case 'activer':
-        user.statut = 'actif';
-        this.showToast('Utilisateur activé avec succès');
-        break;
-      case 'désactiver':
-        user.statut = 'inactif';
-        this.showToast('Utilisateur désactivé avec succès');
-        break;
-      case 'suspendre':
-        user.statut = 'suspendu';
-        this.showToast('Utilisateur suspendu avec succès');
-        break;
-      case 'supprimer':
-        this.users = this.users.filter(u => u.id !== user.id);
-        this.applyFilters();
-        this.showToast('Utilisateur supprimé avec succès');
-        break;
+  // ✅ CORRECTION: Actions sans rechargement manuel
+  async executeAction(action: string, user: User) {
+    let loading: HTMLIonLoadingElement | null = null;
+    
+    try {
+      loading = await this.loadingController.create({
+        message: 'Action en cours...',
+        spinner: 'circular'
+      });
+      await loading.present();
+
+      switch(action) {
+        case 'activer':
+        case 'désactiver':
+        case 'suspendre':
+          const status = action === 'activer' ? 'actif' : 
+                        action === 'désactiver' ? 'inactif' : 'suspendu';
+          
+          // ✅ Le service va automatiquement recharger les données
+          await this.usersService.changeUserStatus(user.id, status).toPromise();
+          await this.showToast(`Utilisateur ${action} avec succès`);
+          break;
+
+        case 'supprimer':
+          // ✅ Le service va automatiquement recharger les données
+          await this.usersService.deleteUser(user.id).toPromise();
+          await this.showToast('Utilisateur supprimé avec succès');
+          break;
+      }
+
+      // ✅ PLUS BESOIN de recharger manuellement
+
+    } catch (error: any) {
+      console.error(`❌ Erreur lors de l'action ${action}:`, error);
+      
+      let errorMessage = `Erreur lors de l'action ${action}`;
+      if (error?.status === 403) {
+        errorMessage = 'Permissions insuffisantes';
+      } else if (error?.status === 404) {
+        errorMessage = 'Utilisateur non trouvé';
+      }
+      
+      await this.showToast(errorMessage, 'danger');
+    } finally {
+      if (loading) {
+        await loading.dismiss();
+      }
     }
-    this.calculateStats();
   }
 
-  async showToast(message: string) {
-    const toast = await this.toastController.create({
-      message: message,
-      duration: 3000,
-      position: 'top',
-      color: 'success'
+  // ✅ CORRECTION: Sauvegarde sans rechargement manuel
+  async saveUser() {
+    if (!this.selectedUser) {
+      await this.showToast('Aucun utilisateur sélectionné', 'warning');
+      return;
+    }
+
+    const validation = this.validateUserData(this.selectedUser);
+    if (!validation.isValid) {
+      await this.showToast(validation.message, 'warning');
+      return;
+    }
+
+    let loading: HTMLIonLoadingElement | null = null;
+    
+    try {
+      loading = await this.loadingController.create({
+        message: 'Sauvegarde en cours...',
+        spinner: 'circular'
+      });
+      await loading.present();
+
+      // ✅ Le service va automatiquement recharger les données
+      await this.usersService.updateUser(this.selectedUser.id, this.selectedUser).toPromise();
+      await this.showToast('Utilisateur modifié avec succès');
+      this.closeModal('edit');
+      
+    } catch (error: any) {
+      console.error('❌ Erreur lors de la sauvegarde:', error);
+      
+      let errorMessage = 'Erreur lors de la sauvegarde';
+      if (error?.error?.error) {
+        errorMessage = error.error.error;
+      } else if (error?.status === 409) {
+        errorMessage = 'Cet email est déjà utilisé';
+      }
+      
+      await this.showToast(errorMessage, 'danger');
+    } finally {
+      if (loading) {
+        await loading.dismiss();
+      }
+    }
+  }
+
+  // ✅ CORRECTION: Ajout sans rechargement manuel
+  async addUser() {
+    const validation = this.validateUserData(this.newUser);
+    if (!validation.isValid) {
+      await this.showToast(validation.message, 'warning');
+      return;
+    }
+
+    let loading: HTMLIonLoadingElement | null = null;
+    
+    try {
+      loading = await this.loadingController.create({
+        message: 'Création en cours...',
+        spinner: 'circular'
+      });
+      await loading.present();
+
+      // ✅ Le service va automatiquement recharger les données
+      await this.usersService.createUser(this.newUser).toPromise();
+      await this.showToast('Utilisateur créé avec succès');
+      this.closeModal('add');
+      
+    } catch (error: any) {
+      console.error('❌ Erreur lors de la création:', error);
+      
+      let errorMessage = 'Erreur lors de la création';
+      if (error?.error?.error) {
+        errorMessage = error.error.error;
+      } else if (error?.status === 409) {
+        errorMessage = 'Cet email est déjà utilisé';
+      } else if (error?.status === 422) {
+        errorMessage = 'Données invalides';
+      }
+      
+      await this.showToast(errorMessage, 'danger');
+    } finally {
+      if (loading) {
+        await loading.dismiss();
+      }
+    }
+  }
+
+  private validateUserData(userData: Partial<User>): { isValid: boolean; message: string } {
+    if (!userData.nom?.trim()) {
+      return { isValid: false, message: 'Le nom est obligatoire' };
+    }
+    
+    if (!userData.prenom?.trim()) {
+      return { isValid: false, message: 'Le prénom est obligatoire' };
+    }
+    
+    if (!userData.email?.trim()) {
+      return { isValid: false, message: 'L\'email est obligatoire' };
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userData.email)) {
+      return { isValid: false, message: 'Veuillez saisir un email valide' };
+    }
+
+    return { isValid: true, message: '' };
+  }
+
+  async deleteUser(user: User) {
+    const alert = await this.alertController.create({
+      header: 'Confirmation de suppression',
+      message: `Êtes-vous sûr de vouloir supprimer définitivement l'utilisateur ${user.prenom} ${user.nom} ?`,
+      subHeader: 'Cette action est irréversible',
+      buttons: [
+        {
+          text: 'Annuler',
+          role: 'cancel'
+        },
+        {
+          text: 'Supprimer',
+          role: 'destructive',
+          handler: () => {
+            this.executeAction('supprimer', user);
+          }
+        }
+      ]
     });
-    toast.present();
+
+    await alert.present();
   }
 
+  // Sélections multiples
   selectUser(userId: string) {
     const index = this.selectedUsers.indexOf(userId);
     if (index > -1) {
@@ -316,19 +759,32 @@ export class UtilisateursPage implements OnInit {
     } else {
       this.selectedUsers.push(userId);
     }
+    console.log('✅ Utilisateurs sélectionnés:', this.selectedUsers.length);
   }
 
   selectAllUsers() {
-    if (this.selectedUsers.length === this.getPaginatedUsers().length) {
+    const currentPageUsers = this.getPaginatedUsers();
+    if (this.selectedUsers.length === currentPageUsers.length) {
       this.selectedUsers = [];
     } else {
-      this.selectedUsers = this.getPaginatedUsers().map(u => u.id);
+      this.selectedUsers = currentPageUsers.map(u => u.id);
     }
+    console.log('✅ Sélection globale:', this.selectedUsers.length);
+  }
+
+  isUserSelected(userId: string): boolean {
+    return this.selectedUsers.includes(userId);
+  }
+
+  areAllUsersSelected(): boolean {
+    const currentPageUsers = this.getPaginatedUsers();
+    return currentPageUsers.length > 0 && 
+           currentPageUsers.every(user => this.selectedUsers.includes(user.id));
   }
 
   async bulkAction(action: string) {
     if (this.selectedUsers.length === 0) {
-      this.showToast('Aucun utilisateur sélectionné');
+      await this.showToast('Aucun utilisateur sélectionné', 'warning');
       return;
     }
 
@@ -352,83 +808,67 @@ export class UtilisateursPage implements OnInit {
     await alert.present();
   }
 
-  executeBulkAction(action: string) {
-    this.selectedUsers.forEach(userId => {
-      const user = this.users.find(u => u.id === userId);
-      if (user) {
-        switch(action) {
-          case 'activer':
-            user.statut = 'actif';
-            break;
-          case 'desactiver':
-            user.statut = 'inactif';
-            break;
-          case 'suspendre':
-            user.statut = 'suspendu';
-            break;
-        }
-      }
-    });
+  async executeBulkAction(action: string) {
+    let loading: HTMLIonLoadingElement | null = null;
     
-    this.selectedUsers = [];
-    this.applyFilters();
-    this.calculateStats();
-    this.showToast(`Action ${action} appliquée avec succès`);
-  }
-
-  // CORRECTION : Fonction d'export fonctionnelle
-  exportUsers() {
     try {
-      // Créer les données CSV
-      const headers = ['ID', 'Prénom', 'Nom', 'Email', 'Type', 'Statut', 'Spécialité', 'Pays', 'Ville', 'Téléphone', 'Missions', 'Note', 'Signalements'];
-      const csvData = this.filteredUsers.map(user => [
-        user.id,
-        user.prenom,
-        user.nom,
-        user.email,
-        user.type,
-        user.statut,
-        user.specialite || '',
-        user.pays,
-        user.ville,
-        user.telephone || '',
-        user.nombreMissions,
-        user.noteGlobale,
-        user.signalements
-      ]);
-
-      // Créer le contenu CSV
-      let csvContent = headers.join(',') + '\n';
-      csvData.forEach(row => {
-        csvContent += row.map(field => `"${field}"`).join(',') + '\n';
+      loading = await this.loadingController.create({
+        message: 'Action en cours...',
+        spinner: 'circular'
       });
+      await loading.present();
 
-      // Créer et télécharger le fichier
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `utilisateurs_${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // ✅ Le service va automatiquement recharger les données
+      await this.usersService.bulkAction(action, this.selectedUsers).toPromise();
+      this.selectedUsers = [];
+      await this.showToast(`Action ${action} appliquée avec succès`);
+      
+    } catch (error: any) {
+      console.error('❌ Erreur lors de l\'action en lot:', error);
+      
+      let errorMessage = 'Erreur lors de l\'action en lot';
+      if (error?.error?.message) {
+        errorMessage = error.error.message;
+      }
+      
+      await this.showToast(errorMessage, 'danger');
+    } finally {
+      if (loading) {
+        await loading.dismiss();
+      }
+    }
+  }
 
-      this.showToast('Export réalisé avec succès');
+  // Export
+  async exportUsers() {
+    try {
+      const loading = await this.loadingController.create({
+        message: 'Préparation de l\'export...',
+        spinner: 'circular'
+      });
+      await loading.present();
+
+      const usersToExport = this.filteredUsers.length > 0 ? this.filteredUsers : this.users;
+      
+      if (usersToExport.length === 0) {
+        await this.showToast('Aucun utilisateur à exporter', 'warning');
+        await loading.dismiss();
+        return;
+      }
+      
+      this.usersService.exportUsers(usersToExport);
+      await this.showToast(`Export de ${usersToExport.length} utilisateurs réalisé avec succès`);
+      
+      await loading.dismiss();
     } catch (error) {
-      console.error('Erreur lors de l\'export:', error);
-      this.showToast('Erreur lors de l\'export');
+      console.error('❌ Erreur lors de l\'export:', error);
+      await this.showToast('Erreur lors de l\'export', 'danger');
     }
   }
 
-  changePage(page: number) {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-    }
-  }
-
+  // Utilitaires
   getStatusColor(statut: string): string {
-    switch(statut) {
+    switch(statut?.toLowerCase()) {
       case 'actif': return 'text-green-600';
       case 'inactif': return 'text-yellow-600';
       case 'suspendu': return 'text-red-600';
@@ -436,123 +876,365 @@ export class UtilisateursPage implements OnInit {
     }
   }
 
+  getStatusBadgeColor(statut: string): string {
+    switch(statut?.toLowerCase()) {
+      case 'actif': return 'success';
+      case 'inactif': return 'warning';
+      case 'suspendu': return 'danger';
+      default: return 'medium';
+    }
+  }
+
   getTypeIcon(type: string): string {
     return type === 'freelance' ? '👨‍💻' : '🏢';
   }
 
+  getTypeLabel(type: string): string {
+    return type === 'freelance' ? 'Freelance' : 'Client';
+  }
+
+  formatDate(date: Date | string): string {
+    if (!date) return '-';
+    try {
+      const d = new Date(date);
+      return d.toLocaleDateString('fr-FR');
+    } catch {
+      return '-';
+    }
+  }
+
+  formatDateTime(date: Date | string): string {
+    if (!date) return '-';
+    try {
+      const d = new Date(date);
+      return d.toLocaleString('fr-FR');
+    } catch {
+      return '-';
+    }
+  }
+
   trackByUserId(index: number, user: User): string {
-    return user.id;
+    return user?.id || index.toString();
   }
 
-  // CORRECTION : Fonction de sauvegarde avec validation
-  saveUser() {
-    if (!this.selectedUser) return;
-
-    // Validation basique
-    if (!this.selectedUser.nom || !this.selectedUser.prenom || !this.selectedUser.email) {
-      this.showToast('Veuillez remplir tous les champs obligatoires');
-      return;
-    }
-
-    // Validation email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(this.selectedUser.email)) {
-      this.showToast('Veuillez saisir un email valide');
-      return;
-    }
-
+  private async showToast(message: string, color: 'success' | 'warning' | 'danger' = 'success') {
     try {
-      const index = this.users.findIndex(u => u.id === this.selectedUser!.id);
-      if (index > -1) {
-        this.users[index] = { ...this.selectedUser };
-        this.applyFilters();
-        this.calculateStats();
-        this.showToast('Utilisateur modifié avec succès');
-        this.closeModal('edit');
-      }
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
-      this.showToast('Erreur lors de la sauvegarde');
-    }
-  }
-
-  // CORRECTION : Fonction d'ajout avec validation
-  addUser() {
-    // Validation basique  
-    if (!this.newUser.nom || !this.newUser.prenom || !this.newUser.email) {
-      this.showToast('Veuillez remplir tous les champs obligatoires');
-      return;
-    }
-
-    // Validation email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(this.newUser.email)) {
-      this.showToast('Veuillez saisir un email valide');
-      return;
-    }
-
-    // Vérifier si l'email existe déjà
-    if (this.users.some(u => u.email === this.newUser.email)) {
-      this.showToast('Cet email est déjà utilisé');
-      return;
-    }
-
-    try {
-      // Créer le nouvel utilisateur
-      const user: User = {
-        id: Date.now().toString(), // ID temporaire
-        nom: this.newUser.nom!,
-        prenom: this.newUser.prenom!,
-        email: this.newUser.email!,
-        type: this.newUser.type as 'freelance' | 'client' || 'freelance',
-        statut: this.newUser.statut as 'actif' | 'inactif' | 'suspendu' || 'actif',
-        telephone: this.newUser.telephone || '',
-        pays: this.newUser.pays || 'Sénégal',
-        ville: this.newUser.ville || '',
-        specialite: this.newUser.specialite || '',
-        nombreMissions: 0,
-        noteGlobale: 0,
-        signalements: 0,
-        dateInscription: new Date(),
-        derniereConnexion: new Date()
-      };
-
-      this.users.push(user);
-      this.applyFilters();
-      this.calculateStats();
-      this.showToast('Utilisateur ajouté avec succès');
-      this.closeModal('add');
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout:', error);
-      this.showToast('Erreur lors de l\'ajout');
-    }
-  }
-
-  // CORRECTION : Fonction de suppression
-  async deleteUser(user: User) {
-    const alert = await this.alertController.create({
-      header: 'Confirmation de suppression',
-      message: `Êtes-vous sûr de vouloir supprimer définitivement l'utilisateur ${user.prenom} ${user.nom} ?`,
-      buttons: [
-        {
-          text: 'Annuler',
-          role: 'cancel'
-        },
-        {
-          text: 'Supprimer',
-          role: 'destructive',
-          handler: () => {
-            this.executeAction('supprimer', user);
+      const toast = await this.toastController.create({
+        message: message,
+        duration: 3000,
+        position: 'top',
+        color: color,
+        buttons: [
+          {
+            text: '✕',
+            role: 'cancel'
           }
-        }
-      ]
-    });
-
-    await alert.present();
+        ]
+      });
+      await toast.present();
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'affichage du toast:', error);
+    }
   }
 
-  // Méthode helper pour Math dans le template
+  // ✅ CORRECTION: Rafraîchissement simplifié
+  async doRefresh(event: any) {
+    try {
+      console.log('🔄 Rafraîchissement des données');
+      
+      // Simplement recharger les données, les subscriptions feront le reste
+      await this.loadUsers();
+      await this.loadStats();
+      
+      await this.showToast('Données actualisées');
+    } catch (error) {
+      console.error('❌ Erreur lors du rafraîchissement:', error);
+      await this.showToast('Erreur lors de l\'actualisation', 'danger');
+    } finally {
+      if (event?.target) {
+        event.target.complete();
+      }
+    }
+  }
+
+  // Helper pour Math dans le template
   get Math() {
     return Math;
+  }
+
+  // Méthodes utiles pour le template
+  hasUsers(): boolean {
+    return this.users.length > 0;
+  }
+
+  hasFilteredUsers(): boolean {
+    return this.filteredUsers.length > 0;
+  }
+
+  getDisplayedUsersCount(): number {
+    return this.getPaginatedUsers().length;
+  }
+
+  // Debug complet
+  debugAll() {
+    console.log('🐛 === DEBUG COMPLET ===');
+    console.log('🔍 État du composant:', {
+      isLoading: this.isLoading,
+      usersCount: this.users.length,
+      filteredUsersCount: this.filteredUsers.length,
+      selectedUsersCount: this.selectedUsers.length,
+      currentPage: this.currentPage,
+      totalPages: this.totalPages,
+      totalItems: this.totalItems,
+      filters: this.filters
+    });
+    
+    const currentUser = this.authService.getCurrentUserValue();
+    console.log('🔍 État d\'authentification:', {
+      isLoggedIn: this.authService.isLoggedIn(),
+      isAdmin: this.authService.isAdmin(),
+      isFreelance: this.authService.isFreelance(),
+      isClient: this.authService.isClient(),
+      currentUser: currentUser,
+      token: this.authService.getToken() ? 'Présent' : 'Absent'
+    });
+    
+    // Debug du service de gestion des utilisateurs
+    this.usersService.debugServiceState();
+    
+    console.log('=======================================');
+  }
+
+  // 🆕 MÉTHODE DE TEST API DIRECTE
+  async testApiDirectly() {
+    console.log('🧪 === TEST API DIRECT ===');
+    
+    // Récupérer le token de toutes les sources possibles
+    const token = this.authService.getToken() || 
+                  localStorage.getItem('auth_token') || 
+                  localStorage.getItem('token') ||
+                  localStorage.getItem('authToken');
+    
+    console.log('🎫 Token à utiliser:', token ? token.substring(0, 30) + '...' : 'AUCUN');
+    
+    if (!token) {
+      console.error('❌ Aucun token disponible pour le test');
+      await this.showToast('Aucun token d\'authentification trouvé', 'danger');
+      return;
+    }
+    
+    try {
+      console.log('📡 Test direct avec fetch...');
+      
+      const response = await fetch('http://localhost:3000/api/users', {
+        method: 'GET',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('📊 Statut réponse:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Test API réussi:', data);
+        console.log('👥 Nombre d\'utilisateurs:', data.users?.length || 0);
+        await this.showToast('Test API réussi !', 'success');
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Test API échoué:', response.status, errorText);
+        await this.showToast(`Test API échoué: ${response.status}`, 'danger');
+      }
+      
+    } catch (error) {
+      console.error('❌ Erreur lors du test API:', error);
+      await this.showToast('Erreur lors du test API', 'danger');
+    }
+  }
+
+  // 🆕 MÉTHODES DE DEBUG AVANCÉES POUR RÉSOUDRE LE PROBLÈME
+
+  async checkIonicStorage() {
+    console.log('📦 === VÉRIFICATION IONIC STORAGE ===');
+    
+    try {
+      // Accéder directement au storage de AuthService
+      const storage = (this.authService as any).storage;
+      
+      if (!storage) {
+        console.error('❌ Storage non initialisé dans AuthService');
+        await this.showToast('Storage non initialisé', 'danger');
+        return;
+      }
+      
+      // Vérifier les données stockées
+      const authToken = await storage.get('auth_token');
+      const currentUser = await storage.get('current_user');
+      
+      console.log('📦 Données dans Ionic Storage:', {
+        auth_token: authToken ? 'PRÉSENT' : 'ABSENT',
+        current_user: currentUser ? 'PRÉSENT' : 'ABSENT'
+      });
+      
+      if (authToken) {
+        console.log('🎫 Token trouvé:', authToken.substring(0, 30) + '...');
+        await this.showToast('Token trouvé dans storage !', 'success');
+      } else {
+        console.error('❌ Aucun token dans Ionic Storage');
+        await this.showToast('Aucun token dans storage - Connexion requise', 'warning');
+      }
+      
+      if (currentUser) {
+        console.log('👤 Utilisateur trouvé:', currentUser);
+      }
+      
+    } catch (error) {
+      console.error('❌ Erreur vérification storage:', error);
+      await this.showToast('Erreur vérification storage', 'danger');
+    }
+  }
+
+  async manualLogin() {
+    console.log('🔐 === LOGIN MANUEL POUR TEST ===');
+    
+    try {
+      // Données de test (remplacez par vos vraies données admin)
+      const loginData = {
+        email: 'admin@matrix.com', // Ou votre email admin
+        password: 'password123' // Ou votre mot de passe admin
+      };
+      
+      console.log('🔄 Tentative de connexion avec:', loginData.email);
+      
+      const response = await this.authService.login(loginData.email, loginData.password);
+      
+      console.log('✅ Connexion réussie:', response);
+      await this.showToast(`Connecté en tant que ${response.user.first_name}`, 'success');
+      
+      // Attendre un peu puis recharger les utilisateurs
+      setTimeout(() => {
+        this.loadUsers();
+      }, 1000);
+      
+    } catch (error: any) {
+      console.error('❌ Erreur connexion:', error);
+      
+      let errorMsg = 'Erreur de connexion';
+      if (error.error?.message) {
+        errorMsg = error.error.message;
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      
+      await this.showToast(errorMsg, 'danger');
+    }
+  }
+
+  async forceTokenFromCurl() {
+    console.log('🔧 === INJECTION TOKEN DEPUIS CURL ===');
+    
+    // Le token qui fonctionne avec curl (celui que vous avez testé)
+    const workingToken = prompt('Collez le token qui fonctionne avec curl :');
+    
+    if (!workingToken) {
+      await this.showToast('Aucun token fourni', 'warning');
+      return;
+    }
+    
+    try {
+      // Forcer le token dans AuthService
+      const storage = (this.authService as any).storage;
+      
+      if (storage) {
+        await storage.set('auth_token', workingToken);
+        console.log('✅ Token forcé dans storage');
+        
+        // Forcer aussi les BehaviorSubjects
+        (this.authService as any).tokenSubject.next(workingToken);
+        
+        // Créer un utilisateur fictif admin
+        const fakeAdmin = {
+          id: 1,
+          email: 'admin@test.com',
+          user_type: 'admin',
+          first_name: 'Admin',
+          last_name: 'Test'
+        };
+        
+        await storage.set('current_user', fakeAdmin);
+        (this.authService as any).currentUserSubject.next(fakeAdmin);
+        
+        await this.showToast('Token forcé avec succès !', 'success');
+        
+        // Tenter de charger les utilisateurs
+        setTimeout(() => {
+          this.loadUsers();
+        }, 1000);
+        
+      } else {
+        await this.showToast('Storage non disponible', 'danger');
+      }
+      
+    } catch (error) {
+      console.error('❌ Erreur injection token:', error);
+      await this.showToast('Erreur injection token', 'danger');
+    }
+  }
+
+  // Gestion des erreurs globales
+  private handleError(error: any, context: string): void {
+    console.error(`❌ Erreur dans ${context}:`, error);
+    
+    if (error?.status === 401) {
+      this.showToast('Session expirée, veuillez vous reconnecter', 'warning');
+      this.router.navigate(['/login']);
+    } else if (error?.status === 403) {
+      this.showToast('Permissions insuffisantes', 'danger');
+    } else if (error?.status === 0) {
+      this.showToast('Impossible de contacter le serveur', 'danger');
+    } else {
+      this.showToast(`Erreur: ${error?.message || 'Erreur inconnue'}`, 'danger');
+    }
+  }
+
+  // Méthodes pour la gestion des permissions
+  canEditUser(): boolean {
+    return this.authService.isAdmin();
+  }
+
+  canDeleteUser(): boolean {
+    return this.authService.isAdmin();
+  }
+
+  canCreateUser(): boolean {
+    return this.authService.isAdmin();
+  }
+
+  // Méthodes pour les statistiques
+  getStatsPercentage(value: number): number {
+    if (this.stats.total === 0) return 0;
+    return Math.round((value / this.stats.total) * 100);
+  }
+
+  // ✅ CORRECTION: Nettoyage des ressources
+  private cleanup(): void {
+    // Nettoyer le timeout de recherche
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+    
+    // Désabonner toutes les subscriptions
+    this.subscriptions.forEach(sub => {
+      if (sub && !sub.closed) {
+        sub.unsubscribe();
+      }
+    });
+    this.subscriptions = [];
+    
+    // Réinitialiser les données
+    this.selectedUsers = [];
+    this.filteredUsers = [];
+    this.users = [];
   }
 }

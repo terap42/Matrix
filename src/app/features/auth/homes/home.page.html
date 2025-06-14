@@ -47,7 +47,10 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding-start-0 ion-padding-end-0">
+<router-outlet></router-outlet>
+
+<!-- Affiche le contenu principal UNIQUEMENT si tu es sur la route '' (donc /homes) -->
+<ion-content *ngIf="isRootRoute()" [fullscreen]="true" class="ion-padding-start-0 ion-padding-end-0">
   <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
     
     <!-- Hero Section - Version mobile optimisée -->

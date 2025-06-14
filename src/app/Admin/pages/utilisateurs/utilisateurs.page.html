@@ -1,651 +1,988 @@
+<!-- Ajoutez ces boutons tout en haut de votre page -->
 
-<!-- Page Header -->
-<div class="flex items-center justify-between mb-6">
-  <div>
-    <h1 class="text-2xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
-    <p class="text-gray-600 mt-1">Gérez les freelances et clients de la plateforme</p>
-  </div>
-  <div class="flex space-x-3">
-    <button 
-      (click)="exportUsers()" 
-      class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center">
-      📊 Exporter
-    </button>
-    <button 
-      (click)="openAddModal()" 
-      class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center">
-      ➕ Ajouter Utilisateur
-    </button>
-  </div>
-</div>
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
-<!-- Stats Cards -->
-<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-  <div class="bg-white p-4 rounded-lg shadow-sm border">
-    <div class="text-2xl font-bold text-blue-600">{{stats.total}}</div>
-    <div class="text-sm text-gray-600">Total</div>
-  </div>
-  <div class="bg-white p-4 rounded-lg shadow-sm border">
-    <div class="text-2xl font-bold text-purple-600">{{stats.freelances}}</div>
-    <div class="text-sm text-gray-600">Freelances</div>
-  </div>
-  <div class="bg-white p-4 rounded-lg shadow-sm border">
-    <div class="text-2xl font-bold text-orange-600">{{stats.clients}}</div>
-    <div class="text-sm text-gray-600">Clients</div>
-  </div>
-  <div class="bg-white p-4 rounded-lg shadow-sm border">
-    <div class="text-2xl font-bold text-green-600">{{stats.actifs}}</div>
-    <div class="text-sm text-gray-600">Actifs</div>
-  </div>
-  <div class="bg-white p-4 rounded-lg shadow-sm border">
-    <div class="text-2xl font-bold text-yellow-600">{{stats.inactifs}}</div>
-    <div class="text-sm text-gray-600">Inactifs</div>
-  </div>
-  <div class="bg-white p-4 rounded-lg shadow-sm border">
-    <div class="text-2xl font-bold text-red-600">{{stats.suspendus}}</div>
-    <div class="text-sm text-gray-600">Suspendus</div>
-  </div>
-</div>
-
-<!-- Filters and Search -->
-<div class="bg-white rounded-lg shadow-sm border mb-6">
-  <div class="p-4 border-b border-gray-200">
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
-      <!-- Search Bar -->
-      <div class="flex-1 lg:max-w-md">
-        <div class="relative">
-          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <span class="text-gray-400">🔍</span>
-          </div>
-          <input 
-            type="text" 
-            (input)="onSearchChange($event)"
-            [value]="filters.search"
-            placeholder="Rechercher par nom, email..." 
-            class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-        </div>
-      </div>
-      
-      <!-- Filter Toggle & Actions -->
-      <div class="flex items-center space-x-3">
-        <button 
-          (click)="toggleFilters()" 
-          class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center">
-          🔧 Filtres
-        </button>
-        <button 
-          (click)="clearFilters()" 
-          class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
-          Effacer
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Advanced Filters -->
-  <div *ngIf="showFilters" class="p-4 border-b border-gray-200 bg-gray-50">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div class="p-6 bg-gray-100 min-h-screen">
+    
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-6">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-        <select [(ngModel)]="filters.type" (change)="applyFilters()" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-          <option value="">Tous les types</option>
-          <option value="freelance">Freelance</option>
-          <option value="client">Client</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-        <select [(ngModel)]="filters.statut" (change)="applyFilters()" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-          <option value="">Tous les statuts</option>
-          <option value="actif">Actif</option>
-          <option value="inactif">Inactif</option>
-          <option value="suspendu">Suspendu</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Spécialité</label>
-        <select [(ngModel)]="filters.specialite" (change)="applyFilters()" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-          <option value="">Toutes les spécialités</option>
-          <option *ngFor="let spec of specialites" [value]="spec">{{spec}}</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Pays</label>
-        <input 
-          type="text" 
-          [(ngModel)]="filters.pays" 
-          (input)="applyFilters()"
-          placeholder="Rechercher par pays" 
-          class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-      </div>
-    </div>
-    <div class="mt-4 flex items-center">
-      <input 
-        type="checkbox" 
-        id="signalements" 
-        [(ngModel)]="filters.signalements" 
-        (change)="applyFilters()"
-        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-      <label for="signalements" class="ml-2 block text-sm text-gray-700">
-        Afficher uniquement les utilisateurs signalés
-      </label>
-    </div>
-  </div>
-</div>
-
-<!-- Bulk Actions (if any users selected) -->
-<div *ngIf="selectedUsers.length > 0" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-  <div class="flex items-center justify-between">
-    <div class="text-blue-800">
-      <span class="font-medium">{{selectedUsers.length}}</span> utilisateur(s) sélectionné(s)
-    </div>
-    <div class="flex space-x-2">
-      <button (click)="bulkAction('activer')" class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700">
-        Activer
-      </button>
-      <button (click)="bulkAction('desactiver')" class="px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700">
-        Désactiver
-      </button>
-      <button (click)="bulkAction('suspendre')" class="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700">
-        Suspendre
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Users Table -->
-<div class="bg-white rounded-lg shadow-sm border overflow-hidden">
-  <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="px-6 py-3 text-left">
-            <input 
-              type="checkbox" 
-              (change)="selectAllUsers()"
-              [checked]="selectedUsers.length === getPaginatedUsers().length && getPaginatedUsers().length > 0"
-              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-          </th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Utilisateur
-          </th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Type
-          </th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Statut
-          </th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Missions
-          </th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Note
-          </th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Signalements
-          </th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Dernière connexion
-          </th>
-          <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Actions
-          </th>
-        </tr>
-      </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
-        <tr *ngFor="let user of getPaginatedUsers(); trackBy: trackByUserId" class="hover:bg-gray-50">
-          <td class="px-6 py-4">
-            <input 
-              type="checkbox" 
-              (change)="selectUser(user.id)"
-              [checked]="selectedUsers.includes(user.id)"
-              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-          </td>
-          <td class="px-6 py-4">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 h-10 w-10">
-                <img *ngIf="user.avatar" [src]="user.avatar" [alt]="user.nom" class="h-10 w-10 rounded-full object-cover">
-                <div *ngIf="!user.avatar" class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                  <span class="text-gray-600 font-medium">{{user.prenom.charAt(0)}}{{user.nom.charAt(0)}}</span>
-                </div>
-              </div>
-              <div class="ml-4">
-                <div class="text-sm font-medium text-gray-900">{{user.prenom}} {{user.nom}}</div>
-                <div class="text-sm text-gray-500">{{user.email}}</div>
-                <div class="text-xs text-gray-400">{{user.ville}}, {{user.pays}}</div>
-              </div>
-            </div>
-          </td>
-          <td class="px-6 py-4">
-            <div class="flex items-center">
-              <span class="mr-2">{{getTypeIcon(user.type)}}</span>
-              <span class="text-sm font-medium capitalize">{{user.type}}</span>
-              <div *ngIf="user.specialite" class="text-xs text-gray-500 mt-1">{{user.specialite}}</div>
-            </div>
-          </td>
-          <td class="px-6 py-4">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" 
-                  [ngClass]="{
-                    'bg-green-100 text-green-800': user.statut === 'actif',
-                    'bg-yellow-100 text-yellow-800': user.statut === 'inactif',
-                    'bg-red-100 text-red-800': user.statut === 'suspendu'
-                  }">
-              {{user.statut}}
-            </span>
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-900">
-            {{user.nombreMissions}}
-          </td>
-          <td class="px-6 py-4">
-            <div class="flex items-center">
-              <span class="text-sm text-gray-900 mr-1">{{user.noteGlobale}}</span>
-              <div class="flex text-yellow-400">
-                <span *ngFor="let star of [1,2,3,4,5]" 
-                      [ngClass]="star <= user.noteGlobale ? 'text-yellow-400' : 'text-gray-300'">
-                  ⭐
-                </span>
-              </div>
-            </div>
-          </td>
-          <td class="px-6 py-4">
-            <span *ngIf="user.signalements > 0" 
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-              {{user.signalements}} signalement(s)
-            </span>
-            <span *ngIf="user.signalements === 0" class="text-sm text-gray-500">Aucun</span>
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-500">
-            {{user.derniereConnexion | date:'dd/MM/yyyy'}}
-          </td>
-          <td class="px-6 py-4 text-right text-sm font-medium">
-            <div class="flex items-center justify-end space-x-2">
-              <button 
-                (click)="openViewModal(user)" 
-                class="text-blue-600 hover:text-blue-900 p-1" 
-                title="Voir détail">
-                👁️
-              </button>
-              <button 
-                (click)="openEditModal(user)" 
-                class="text-yellow-600 hover:text-yellow-900 p-1" 
-                title="Modifier">
-                ✏️
-              </button>
-              <button 
-                *ngIf="user.statut === 'actif'" 
-                (click)="confirmAction('désactiver', user)" 
-                class="text-orange-600 hover:text-orange-900 p-1" 
-                title="Désactiver">
-                ⏸️
-              </button>
-              <button 
-                *ngIf="user.statut === 'inactif'" 
-                (click)="confirmAction('activer', user)" 
-                class="text-green-600 hover:text-green-900 p-1" 
-                title="Activer">
-                ▶️
-              </button>
-              <button 
-                (click)="confirmAction('suspendre', user)" 
-                class="text-red-600 hover:text-red-900 p-1" 
-                title="Suspendre">
-                🚫
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Pagination -->
-  <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center">
-        <p class="text-sm text-gray-700">
-          Affichage de 
-          <span class="font-medium">{{(currentPage - 1) * itemsPerPage + 1}}</span>
-          à 
-          <span class="font-medium">{{Math.min(currentPage * itemsPerPage, filteredUsers.length)}}</span>
-          sur 
-          <span class="font-medium">{{filteredUsers.length}}</span>
-          résultats
+        <h1 class="text-2xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
+        <p class="text-gray-600 mt-1">
+          Gérez les freelances et clients de la plateforme
+          <span class="text-sm text-gray-400 ml-2">
+            ({{totalItems}} utilisateur{{totalItems !== 1 ? 's' : ''}})
+          </span>
         </p>
       </div>
-      <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+      <div class="flex space-x-3">
+        <!-- Bouton de rafraîchissement -->
         <button 
-          (click)="changePage(currentPage - 1)"
-          [disabled]="currentPage === 1"
-          class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
-          ← Précédent
+          (click)="doRefresh(null)" 
+          [disabled]="isLoading"
+          class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center disabled:opacity-50">
+          🔄 Actualiser
         </button>
+        
         <button 
-          *ngFor="let page of [].constructor(totalPages); let i = index"
-          (click)="changePage(i + 1)"
-          [ngClass]="{
-            'bg-blue-50 border-blue-500 text-blue-600': currentPage === i + 1,
-            'bg-white border-gray-300 text-gray-500 hover:bg-gray-50': currentPage !== i + 1
-          }"
-          class="relative inline-flex items-center px-4 py-2 border text-sm font-medium">
-          {{i + 1}}
+          (click)="exportUsers()" 
+          [disabled]="isLoading || users.length === 0"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50">
+          📊 Exporter ({{filteredUsers.length}})
         </button>
+        
         <button 
-          (click)="changePage(currentPage + 1)"
-          [disabled]="currentPage === totalPages"
-          class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
-          Suivant →
+          (click)="openAddModal()" 
+          [disabled]="isLoading"
+          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center disabled:opacity-50">
+          ➕ Ajouter Utilisateur
         </button>
-      </nav>
+        
+        <!-- Bouton de debug (à retirer en production) -->
+        <button 
+          (click)="debugAll()" 
+          class="px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm">
+          🐛
+        </button>
+      </div>
     </div>
-  </div>
-</div>
 
-<!-- Modal Add User -->
-<div *ngIf="showAddModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-  <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-lg font-bold text-gray-900">Ajouter un Utilisateur</h3>
-      <button (click)="closeModal('add')" class="text-gray-400 hover:text-gray-600">
-        <span class="text-2xl">&times;</span>
-      </button>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+      <div class="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-2xl font-bold text-blue-600">{{stats.total || 0}}</div>
+            <div class="text-sm text-gray-600">Total</div>
+          </div>
+          <div class="text-blue-500 text-2xl">👥</div>
+        </div>
+      </div>
+      
+      <div class="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-2xl font-bold text-purple-600">{{stats.freelances || 0}}</div>
+            <div class="text-sm text-gray-600">Freelances</div>
+            <div class="text-xs text-gray-400">{{getStatsPercentage(stats.freelances)}}%</div>
+          </div>
+          <div class="text-purple-500 text-2xl">👨‍💻</div>
+        </div>
+      </div>
+      
+      <div class="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-2xl font-bold text-orange-600">{{stats.clients || 0}}</div>
+            <div class="text-sm text-gray-600">Clients</div>
+            <div class="text-xs text-gray-400">{{getStatsPercentage(stats.clients)}}%</div>
+          </div>
+          <div class="text-orange-500 text-2xl">🏢</div>
+        </div>
+      </div>
+      
+      <div class="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-2xl font-bold text-green-600">{{stats.actifs || 0}}</div>
+            <div class="text-sm text-gray-600">Actifs</div>
+            <div class="text-xs text-gray-400">{{getStatsPercentage(stats.actifs)}}%</div>
+          </div>
+          <div class="text-green-500 text-2xl">✅</div>
+        </div>
+      </div>
+      
+      <div class="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-2xl font-bold text-yellow-600">{{stats.inactifs || 0}}</div>
+            <div class="text-sm text-gray-600">Inactifs</div>
+            <div class="text-xs text-gray-400">{{getStatsPercentage(stats.inactifs)}}%</div>
+          </div>
+          <div class="text-yellow-500 text-2xl">⏸️</div>
+        </div>
+      </div>
+      
+      <div class="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-2xl font-bold text-red-600">{{stats.suspendus || 0}}</div>
+            <div class="text-sm text-gray-600">Suspendus</div>
+            <div class="text-xs text-gray-400">{{getStatsPercentage(stats.suspendus)}}%</div>
+          </div>
+          <div class="text-red-500 text-2xl">🚫</div>
+        </div>
+      </div>
     </div>
-    
-    <form class="space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Prénom *</label>
-          <input type="text" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
-          <input type="text" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
-        </div>
-      </div>
-      
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-        <input type="email" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
-      </div>
-      
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
-        <input type="tel" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Type *</label>
-          <select class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
-            <option value="">Sélectionner le type</option>
-            <option value="freelance">Freelance</option>
-            <option value="client">Client</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Spécialité</label>
-          <select class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-            <option value="">Sélectionner une spécialité</option>
-            <option *ngFor="let spec of specialites" [value]="spec">{{spec}}</option>
-          </select>
-        </div>
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Pays *</label>
-          <input type="text" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Ville *</label>
-          <input type="text" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
-        </div>
-      </div>
-      
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-        <select class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-          <option value="actif">Actif</option>
-          <option value="inactif">Inactif</option>
-          <option value="suspendu">Suspendu</option>
-        </select>
-      </div>
-      
-      <div class="flex justify-end space-x-3 pt-4">
-        <button type="button" (click)="closeModal('add')" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
-          Annuler
-        </button>
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-          Ajouter
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
 
-<!-- Modal Edit User -->
-<div *ngIf="showEditModal && selectedUser" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-  <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-lg font-bold text-gray-900">Modifier l'Utilisateur</h3>
-      <button (click)="closeModal('edit')" class="text-gray-400 hover:text-gray-600">
-        <span class="text-2xl">&times;</span>
-      </button>
-    </div>
-    
-    <form class="space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Prénom *</label>
-          <input type="text" [(ngModel)]="selectedUser.prenom" name="prenom" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
-          <input type="text" [(ngModel)]="selectedUser.nom" name="nom" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
-        </div>
-      </div>
-      
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-        <input type="email" [(ngModel)]="selectedUser.email" name="email" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
-      </div>
-      
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
-        <input type="tel" [(ngModel)]="selectedUser.telephone" name="telephone" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Type *</label>
-          <select [(ngModel)]="selectedUser.type" name="type" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
-            <option value="freelance">Freelance</option>
-            <option value="client">Client</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Spécialité</label>
-          <select [(ngModel)]="selectedUser.specialite" name="specialite" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-            <option value="">Sélectionner une spécialité</option>
-            <option *ngFor="let spec of specialites" [value]="spec">{{spec}}</option>
-          </select>
-        </div>
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Pays *</label>
-          <input type="text" [(ngModel)]="selectedUser.pays" name="pays" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Ville *</label>
-          <input type="text" [(ngModel)]="selectedUser.ville" name="ville" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
-        </div>
-      </div>
-      
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-        <select [(ngModel)]="selectedUser.statut" name="statut" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-          <option value="actif">Actif</option>
-          <option value="inactif">Inactif</option>
-          <option value="suspendu">Suspendu</option>
-        </select>
-      </div>
-      
-      <div class="flex justify-end space-x-3 pt-4">
-        <button type="button" (click)="closeModal('edit')" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
-          Annuler
-        </button>
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-          Sauvegarder
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal View User -->
-<div *ngIf="showViewModal && selectedUser" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-  <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white">
-    <div class="flex items-center justify-between mb-6">
-      <h3 class="text-lg font-bold text-gray-900">Détail de l'Utilisateur</h3>
-      <button (click)="closeModal('view')" class="text-gray-400 hover:text-gray-600">
-        <span class="text-2xl">&times;</span>
-      </button>
-    </div>
-    
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Profile Info -->
-      <div class="lg:col-span-2">
-        <div class="bg-gray-50 rounded-lg p-6 mb-6">
-          <div class="flex items-center mb-4">
-            <div class="flex-shrink-0 h-16 w-16">
-              <img *ngIf="selectedUser.avatar" [src]="selectedUser.avatar" [alt]="selectedUser.nom" class="h-16 w-16 rounded-full object-cover">
-              <div *ngIf="!selectedUser.avatar" class="h-16 w-16 rounded-full bg-gray-300 flex items-center justify-center">
-                <span class="text-gray-600 font-medium text-xl">{{selectedUser.prenom.charAt(0)}}{{selectedUser.nom.charAt(0)}}</span>
+    <!-- Filters and Search -->
+    <div class="bg-white rounded-lg shadow-sm border mb-6">
+      <div class="p-4 border-b border-gray-200">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
+          <!-- Search Bar -->
+          <div class="flex-1 lg:max-w-md">
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="text-gray-400">🔍</span>
               </div>
+              <input 
+                type="text" 
+                (input)="onSearchChange($event)"
+                [value]="filters.search"
+                placeholder="Rechercher par nom, email..." 
+                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
             </div>
-            <div class="ml-6">
-              <h4 class="text-xl font-bold text-gray-900">{{selectedUser.prenom}} {{selectedUser.nom}}</h4>
-              <p class="text-gray-600">{{selectedUser.email}}</p>
-              <div class="flex items-center mt-2">
-                <span class="mr-2">{{getTypeIcon(selectedUser.type)}}</span>
-                <span class="text-sm font-medium capitalize mr-4">{{selectedUser.type}}</span>
+          </div>
+          
+          <!-- Filter Toggle & Actions -->
+          <div class="flex items-center space-x-3">
+            <button 
+              (click)="toggleFilters()" 
+              class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+              🔧 Filtres
+            </button>
+            <button 
+              (click)="clearFilters()" 
+              class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
+              Effacer
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Advanced Filters -->
+      <div *ngIf="showFilters" class="p-4 border-b border-gray-200 bg-gray-50">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <select [(ngModel)]="filters.type" 
+                    (ngModelChange)="filterByType($event)" 
+                    class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+              <option value="">Tous les types</option>
+              <option value="freelance">Freelance</option>
+              <option value="client">Client</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+            <select [(ngModel)]="filters.statut" 
+                    (ngModelChange)="filterByStatus($event)" 
+                    class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+              <option value="">Tous les statuts</option>
+              <option value="actif">Actif</option>
+              <option value="inactif">Inactif</option>
+              <option value="suspendu">Suspendu</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Spécialité</label>
+            <select [(ngModel)]="filters.specialite" 
+                    (ngModelChange)="applyFilters()" 
+                    class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+              <option value="">Toutes les spécialités</option>
+              <option *ngFor="let spec of specialites" [value]="spec">{{spec}}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Pays</label>
+            <input 
+              type="text" 
+              [(ngModel)]="filters.pays" 
+              (input)="applyFilters()"
+              placeholder="Rechercher par pays" 
+              class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+          </div>
+        </div>
+        <div class="mt-4 flex items-center">
+          <input 
+            type="checkbox" 
+            id="signalements" 
+            [(ngModel)]="filters.signalements" 
+            (change)="applyFilters()"
+            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+          <label for="signalements" class="ml-2 block text-sm text-gray-700">
+            Afficher uniquement les utilisateurs signalés
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bulk Actions (if any users selected) -->
+    <div *ngIf="selectedUsers.length > 0" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <div class="flex items-center justify-between">
+        <div class="text-blue-800">
+          <span class="font-medium">{{selectedUsers.length}}</span> utilisateur(s) sélectionné(s)
+        </div>
+        <div class="flex space-x-2">
+          <button (click)="bulkAction('activer')" class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700">
+            Activer
+          </button>
+          <button (click)="bulkAction('desactiver')" class="px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700">
+            Désactiver
+          </button>
+          <button (click)="bulkAction('suspendre')" class="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700">
+            Suspendre
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div *ngIf="isLoading && users.length === 0" class="bg-white rounded-lg shadow-sm border p-8 mb-6">
+      <div class="flex items-center justify-center">
+        <ion-spinner name="circular"></ion-spinner>
+        <span class="ml-3 text-gray-600">Chargement des utilisateurs...</span>
+      </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-white rounded-lg shadow-sm border overflow-hidden" *ngIf="!isLoading || users.length > 0">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left">
+                <input 
+                  type="checkbox" 
+                  (change)="selectAllUsers()"
+                  [checked]="areAllUsersSelected()"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Utilisateur
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Type
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Statut
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Missions
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Note
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Signalements
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Dernière connexion
+              </th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <!-- État de chargement dans le tableau -->
+            <tr *ngIf="isLoading && users.length > 0">
+              <td colspan="9" class="px-6 py-4 text-center">
+                <div class="flex items-center justify-center">
+                  <ion-spinner name="circular" class="mr-3"></ion-spinner>
+                  <span class="text-gray-600">Mise à jour en cours...</span>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Lignes des utilisateurs -->
+            <tr *ngFor="let user of getPaginatedUsers(); trackBy: trackByUserId; let i = index" 
+                class="hover:bg-gray-50 transition-colors duration-150">
+              <td class="px-6 py-4">
+                <input 
+                  type="checkbox" 
+                  (change)="selectUser(user.id)"
+                  [checked]="isUserSelected(user.id)"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+              </td>
+              
+              <!-- Informations utilisateur -->
+              <td class="px-6 py-4">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <img *ngIf="user.avatar" 
+                         [src]="user.avatar" 
+                         [alt]="user.nom" 
+                         class="h-10 w-10 rounded-full object-cover">
+                    <div *ngIf="!user.avatar" 
+                         class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                      <span class="text-white font-medium text-sm">
+                        {{(user.prenom || '').charAt(0).toUpperCase()}}{{(user.nom || '').charAt(0).toUpperCase()}}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">
+                      {{user.prenom || 'N/A'}} {{user.nom || 'N/A'}}
+                    </div>
+                    <div class="text-sm text-gray-500">{{user.email || 'N/A'}}</div>
+                    <div class="text-xs text-gray-400" *ngIf="user.ville || user.pays">
+                      {{user.ville}}<span *ngIf="user.ville && user.pays">, </span>{{user.pays}}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              
+              <!-- Type -->
+              <td class="px-6 py-4">
+                <div class="flex flex-col">
+                  <div class="flex items-center">
+                    <span class="mr-2">{{getTypeIcon(user.type)}}</span>
+                    <span class="text-sm font-medium capitalize">{{user.type || 'N/A'}}</span>
+                  </div>
+                  <div *ngIf="user.specialite" class="text-xs text-gray-500 mt-1">{{user.specialite}}</div>
+                </div>
+              </td>
+              
+              <!-- Statut -->
+              <td class="px-6 py-4">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" 
                       [ngClass]="{
-                        'bg-green-100 text-green-800': selectedUser.statut === 'actif',
-                        'bg-yellow-100 text-yellow-800': selectedUser.statut === 'inactif',
-                        'bg-red-100 text-red-800': selectedUser.statut === 'suspendu'
+                        'bg-green-100 text-green-800': user.statut === 'actif',
+                        'bg-yellow-100 text-yellow-800': user.statut === 'inactif',
+                        'bg-red-100 text-red-800': user.statut === 'suspendu',
+                        'bg-gray-100 text-gray-800': !user.statut
                       }">
-                  {{selectedUser.statut}}
+                  {{user.statut || 'Non défini'}}
                 </span>
+              </td>
+              
+              <!-- Missions -->
+              <td class="px-6 py-4 text-sm text-gray-900">
+                {{user.nombreMissions || 0}}
+              </td>
+              
+              <!-- Note -->
+              <td class="px-6 py-4">
+                <div class="flex items-center">
+                  <span class="text-sm text-gray-900 mr-1">{{(user.noteGlobale || 0).toFixed(1)}}</span>
+                  <div class="flex text-yellow-400">
+                    <span *ngFor="let star of [1,2,3,4,5]; let starIndex = index" 
+                          [ngClass]="starIndex < Math.floor(user.noteGlobale || 0) ? 'text-yellow-400' : 'text-gray-300'"
+                          class="text-xs">
+                      ★
+                    </span>
+                  </div>
+                </div>
+              </td>
+              
+              <!-- Signalements -->
+              <td class="px-6 py-4">
+                <span *ngIf="(user.signalements || 0) > 0" 
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  ⚠️ {{user.signalements}} signalement(s)
+                </span>
+                <span *ngIf="(user.signalements || 0) === 0" 
+                      class="text-sm text-gray-500">Aucun</span>
+              </td>
+              
+              <!-- Dernière connexion -->
+              <td class="px-6 py-4 text-sm text-gray-500">
+                <div class="flex flex-col">
+                  <span>{{formatDate(user.derniereConnexion)}}</span>
+                  <span class="text-xs text-gray-400">
+                    {{formatDateTime(user.derniereConnexion)}}
+                  </span>
+                </div>
+              </td>
+              
+              <!-- Actions -->
+              <td class="px-6 py-4 text-right text-sm font-medium">
+                <div class="flex items-center justify-end space-x-1">
+                  <button 
+                    (click)="openViewModal(user)" 
+                    class="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-full transition-colors" 
+                    title="Voir détails">
+                    👁️
+                  </button>
+                  <button 
+                    (click)="openEditModal(user)" 
+                    class="inline-flex items-center justify-center w-8 h-8 text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50 rounded-full transition-colors" 
+                    title="Modifier">
+                    ✏️
+                  </button>
+                  <button 
+                    *ngIf="user.statut === 'actif'" 
+                    (click)="confirmAction('désactiver', user)" 
+                    class="inline-flex items-center justify-center w-8 h-8 text-orange-600 hover:text-orange-900 hover:bg-orange-50 rounded-full transition-colors" 
+                    title="Désactiver">
+                    ⏸️
+                  </button>
+                  <button 
+                    *ngIf="user.statut === 'inactif'" 
+                    (click)="confirmAction('activer', user)" 
+                    class="inline-flex items-center justify-center w-8 h-8 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-full transition-colors" 
+                    title="Activer">
+                    ▶️
+                  </button>
+                  <button 
+                    *ngIf="user.statut !== 'suspendu'"
+                    (click)="confirmAction('suspendre', user)" 
+                    class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-full transition-colors" 
+                    title="Suspendre">
+                    🚫
+                  </button>
+                  <button 
+                    (click)="deleteUser(user)" 
+                    class="inline-flex items-center justify-center w-8 h-8 text-red-800 hover:text-red-900 hover:bg-red-50 rounded-full transition-colors" 
+                    title="Supprimer">
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- État vide -->
+            <tr *ngIf="getPaginatedUsers().length === 0 && !isLoading">
+              <td colspan="9" class="px-6 py-12 text-center">
+                <div class="text-gray-500">
+                  <div class="text-6xl mb-4">👥</div>
+                  <p class="text-lg font-medium mb-2">Aucun utilisateur trouvé</p>
+                  <p class="text-sm text-gray-400 mb-4">
+                    {{users.length === 0 ? 'Aucun utilisateur dans la base de données' : 'Essayez de modifier vos critères de recherche'}}
+                  </p>
+                  <button 
+                    *ngIf="users.length === 0"
+                    (click)="openAddModal()" 
+                    class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    ➕ Ajouter le premier utilisateur
+                  </button>
+                  <button 
+                    *ngIf="users.length > 0"
+                    (click)="clearFilters()" 
+                    class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                    🧹 Effacer les filtres
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6" *ngIf="getPaginatedUsers().length > 0 || isLoading">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <p class="text-sm text-gray-700">
+              Affichage de 
+              <span class="font-medium">{{(currentPage - 1) * itemsPerPage + 1}}</span>
+              à 
+              <span class="font-medium">{{Math.min(currentPage * itemsPerPage, totalItems)}}</span>
+              sur 
+              <span class="font-medium">{{totalItems}}</span>
+              résultats
+            </p>
+          </div>
+          <!-- Navigation pagination corrigée -->
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" *ngIf="totalPages > 1">
+            <button 
+              (click)="changePage(currentPage - 1)"
+              [disabled]="currentPage === 1 || isLoading"
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+              ← Précédent
+            </button>
+            
+            <!-- Pages numérotées -->
+            <button 
+              *ngFor="let page of getPaginationArray()"
+              (click)="changePage(page)"
+              [disabled]="isLoading"
+              [ngClass]="{
+                'bg-blue-50 border-blue-500 text-blue-600 z-10': currentPage === page,
+                'bg-white border-gray-300 text-gray-500 hover:bg-gray-50': currentPage !== page
+              }"
+              class="relative inline-flex items-center px-4 py-2 border text-sm font-medium disabled:cursor-not-allowed">
+              {{page}}
+            </button>
+            
+            <span *ngIf="totalPages > 10 && currentPage < totalPages - 5" 
+                  class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+              ...
+            </span>
+            
+            <button 
+              (click)="changePage(currentPage + 1)"
+              [disabled]="currentPage === totalPages || isLoading"
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+              Suivant →
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Add User -->
+    <div *ngIf="showAddModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gray-900">Ajouter un Utilisateur</h3>
+          <button (click)="closeModal('add')" class="text-gray-400 hover:text-gray-600">
+            <span class="text-2xl">&times;</span>
+          </button>
+        </div>
+        
+        <form (ngSubmit)="addUser()" #addForm="ngForm" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Prénom *</label>
+              <input 
+                type="text" 
+                [(ngModel)]="newUser.prenom" 
+                name="prenom"
+                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
+              <input 
+                type="text" 
+                [(ngModel)]="newUser.nom" 
+                name="nom"
+                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                required>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+            <input 
+              type="email" 
+              [(ngModel)]="newUser.email" 
+              name="email"
+              class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+              required>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+            <input 
+              type="tel" 
+              [(ngModel)]="newUser.telephone" 
+              name="telephone"
+              class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+              <select 
+                [(ngModel)]="newUser.type" 
+                name="type"
+                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                required>
+                <option value="">Sélectionner le type</option>
+                <option value="freelance">Freelance</option>
+                <option value="client">Client</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Spécialité</label>
+              <select 
+                [(ngModel)]="newUser.specialite" 
+                name="specialite"
+                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Sélectionner une spécialité</option>
+                <option *ngFor="let spec of specialites" [value]="spec">{{spec}}</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Pays *</label>
+              <input 
+                type="text" 
+                [(ngModel)]="newUser.pays" 
+                name="pays"
+                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Ville *</label>
+              <input 
+                type="text" 
+                [(ngModel)]="newUser.ville" 
+                name="ville"
+                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                required>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+            <select 
+              [(ngModel)]="newUser.statut" 
+              name="statut"
+              class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+              <option value="actif">Actif</option>
+              <option value="inactif">Inactif</option>
+              <option value="suspendu">Suspendu</option>
+            </select>
+          </div>
+          
+          <div class="flex justify-end space-x-3 pt-4">
+            <button 
+              type="button" 
+              (click)="closeModal('add')" 
+              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+              Annuler
+            </button>
+            <button 
+              type="submit" 
+              [disabled]="isLoading || !addForm.valid"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+              <span *ngIf="!isLoading">Ajouter</span>
+              <span *ngIf="isLoading">Ajout...</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Edit User -->
+    <div *ngIf="showEditModal && selectedUser" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gray-900">Modifier l'Utilisateur</h3>
+          <button (click)="closeModal('edit')" class="text-gray-400 hover:text-gray-600">
+            <span class="text-2xl">&times;</span>
+          </button>
+        </div>
+        
+        <form (ngSubmit)="saveUser()" #editForm="ngForm" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Prénom *</label>
+              <input 
+                type="text" 
+                [(ngModel)]="selectedUser.prenom" 
+                name="prenom" 
+                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
+              <input 
+                type="text" 
+                [(ngModel)]="selectedUser.nom" 
+                name="nom" 
+                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                required>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+            <input 
+              type="email" 
+              [(ngModel)]="selectedUser.email" 
+              name="email" 
+              class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+              required>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+            <input 
+              type="tel" 
+              [(ngModel)]="selectedUser.telephone" 
+              name="telephone" 
+              class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+              <select 
+                [(ngModel)]="selectedUser.type" 
+                name="type" 
+                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                required>
+                <option value="freelance">Freelance</option>
+                <option value="client">Client</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Spécialité</label>
+              <select 
+                [(ngModel)]="selectedUser.specialite" 
+                name="specialite" 
+                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Sélectionner une spécialité</option>
+                <option *ngFor="let spec of specialites" [value]="spec">{{spec}}</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Pays *</label>
+              <input 
+                type="text" 
+                [(ngModel)]="selectedUser.pays" 
+                name="pays" 
+                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Ville *</label>
+              <input 
+                type="text" 
+                [(ngModel)]="selectedUser.ville" 
+                name="ville" 
+                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                required>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+            <select 
+              [(ngModel)]="selectedUser.statut" 
+              name="statut" 
+              class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+              <option value="actif">Actif</option>
+              <option value="inactif">Inactif</option>
+              <option value="suspendu">Suspendu</option>
+            </select>
+          </div>
+          
+          <div class="flex justify-end space-x-3 pt-4">
+            <button 
+              type="button" 
+              (click)="closeModal('edit')" 
+              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+              Annuler
+            </button>
+            <button 
+              type="submit" 
+              [disabled]="isLoading || !editForm.valid"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+              <span *ngIf="!isLoading">Sauvegarder</span>
+              <span *ngIf="isLoading">Sauvegarde...</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal View User -->
+    <div *ngIf="showViewModal && selectedUser" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-lg font-bold text-gray-900">Détail de l'Utilisateur</h3>
+          <button (click)="closeModal('view')" class="text-gray-400 hover:text-gray-600">
+            <span class="text-2xl">&times;</span>
+          </button>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Profile Info -->
+          <div class="lg:col-span-2">
+            <div class="bg-gray-50 rounded-lg p-6 mb-6">
+              <div class="flex items-center mb-4">
+                <div class="flex-shrink-0 h-16 w-16">
+                  <img *ngIf="selectedUser.avatar" 
+                       [src]="selectedUser.avatar" 
+                       [alt]="selectedUser.nom" 
+                       class="h-16 w-16 rounded-full object-cover">
+                  <div *ngIf="!selectedUser.avatar" 
+                       class="h-16 w-16 rounded-full bg-gray-300 flex items-center justify-center">
+                    <span class="text-gray-600 font-medium text-xl">
+                      {{(selectedUser.prenom || '').charAt(0)}}{{(selectedUser.nom || '').charAt(0)}}
+                    </span>
+                  </div>
+                </div>
+                <div class="ml-6">
+                  <h4 class="text-xl font-bold text-gray-900">{{selectedUser.prenom}} {{selectedUser.nom}}</h4>
+                  <p class="text-gray-600">{{selectedUser.email}}</p>
+                  <div class="flex items-center mt-2">
+                    <span class="mr-2">{{getTypeIcon(selectedUser.type)}}</span>
+                    <span class="text-sm font-medium capitalize mr-4">{{selectedUser.type}}</span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" 
+                          [ngClass]="{
+                            'bg-green-100 text-green-800': selectedUser.statut === 'actif',
+                            'bg-yellow-100 text-yellow-800': selectedUser.statut === 'inactif',
+                            'bg-red-100 text-red-800': selectedUser.statut === 'suspendu'
+                          }">
+                      {{selectedUser.statut}}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Personal Info -->
+            <div class="bg-white border rounded-lg p-6 mb-6">
+              <h5 class="text-lg font-semibold text-gray-900 mb-4">Informations Personnelles</h5>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">Téléphone</label>
+                  <p class="text-gray-900">{{selectedUser.telephone || 'Non renseigné'}}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">Spécialité</label>
+                  <p class="text-gray-900">{{selectedUser.specialite || 'Non renseignée'}}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">Pays</label>
+                  <p class="text-gray-900">{{selectedUser.pays || 'Non renseigné'}}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">Ville</label>
+                  <p class="text-gray-900">{{selectedUser.ville || 'Non renseignée'}}</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Activity History -->
+            <div class="bg-white border rounded-lg p-6">
+              <h5 class="text-lg font-semibold text-gray-900 mb-4">Historique d'Activité</h5>
+              <div class="space-y-4">
+                <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                  <span class="text-gray-600">Date d'inscription</span>
+                  <span class="font-medium">{{formatDate(selectedUser.dateInscription)}}</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                  <span class="text-gray-600">Dernière connexion</span>
+                  <span class="font-medium">{{formatDateTime(selectedUser.derniereConnexion)}}</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                  <span class="text-gray-600">Nombre de missions</span>
+                  <span class="font-medium">{{selectedUser.nombreMissions || 0}}</span>
+                </div>
+                <div class="flex items-center justify-between py-2">
+                  <span class="text-gray-600">Note globale</span>
+                  <div class="flex items-center">
+                    <span class="font-medium mr-2">{{selectedUser.noteGlobale || 0}}/5</span>
+                    <div class="flex text-yellow-400">
+                      <span *ngFor="let star of [1,2,3,4,5]" 
+                            [ngClass]="star <= (selectedUser.noteGlobale || 0) ? 'text-yellow-400' : 'text-gray-300'">
+                        ⭐
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Freelance Profile Info -->
+            <div *ngIf="selectedUser.type === 'freelance' && selectedUser.freelance_profile" 
+                 class="bg-white border rounded-lg p-6 mt-6">
+              <h5 class="text-lg font-semibold text-gray-900 mb-4">Profil Freelance</h5>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">Tarif horaire</label>
+                  <p class="text-gray-900">{{selectedUser.freelance_profile.hourly_rate || 'Non défini'}} €/h</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">Disponibilité</label>
+                  <p class="text-gray-900">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                          [ngClass]="selectedUser.freelance_profile.availability ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                      {{selectedUser.freelance_profile.availability ? 'Disponible' : 'Indisponible'}}
+                    </span>
+                  </p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">Années d'expérience</label>
+                  <p class="text-gray-900">{{selectedUser.freelance_profile.experience_years || 0}} ans</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">Temps de réponse</label>
+                  <p class="text-gray-900">{{selectedUser.freelance_profile.response_time_hours || 24}}h</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">Revenus totaux</label>
+                  <p class="text-gray-900">{{selectedUser.freelance_profile.total_earnings || 0}} €</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">Missions complétées</label>
+                  <p class="text-gray-900">{{selectedUser.freelance_profile.completed_missions || 0}}</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <!-- Personal Info -->
-        <div class="bg-white border rounded-lg p-6 mb-6">
-          <h5 class="text-lg font-semibold text-gray-900 mb-4">Informations Personnelles</h5>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-500">Téléphone</label>
-              <p class="text-gray-900">{{selectedUser.telephone || 'Non renseigné'}}</p>
+          
+          <!-- Quick Actions & Stats -->
+          <div>
+            <div class="bg-white border rounded-lg p-6 mb-6">
+              <h5 class="text-lg font-semibold text-gray-900 mb-4">Actions Rapides</h5>
+              <div class="space-y-3">
+                <button 
+                  *ngIf="selectedUser.statut === 'actif'" 
+                  (click)="confirmAction('désactiver', selectedUser)" 
+                  class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                  ⏸️ Désactiver
+                </button>
+                <button 
+                  *ngIf="selectedUser.statut === 'inactif'" 
+                  (click)="confirmAction('activer', selectedUser)" 
+                  class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                  ▶️ Activer
+                </button>
+                <button 
+                  (click)="confirmAction('suspendre', selectedUser)" 
+                  class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                  🚫 Suspendre
+                </button>
+                <button 
+                  (click)="openEditModal(selectedUser); closeModal('view')" 
+                  class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                  ✏️ Modifier
+                </button>
+                <button 
+                  (click)="deleteUser(selectedUser); closeModal('view')" 
+                  class="w-full px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900 transition-colors">
+                  🗑️ Supprimer
+                </button>
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-500">Spécialité</label>
-              <p class="text-gray-900">{{selectedUser.specialite || 'Non renseignée'}}</p>
+            
+            <!-- Warnings -->
+            <div *ngIf="selectedUser.signalements && selectedUser.signalements > 0" 
+                 class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <div class="flex items-center mb-2">
+                <span class="text-red-600 mr-2">⚠️</span>
+                <h6 class="font-semibold text-red-800">Signalements</h6>
+              </div>
+              <p class="text-red-700 text-sm">
+                Cet utilisateur a reçu {{selectedUser.signalements}} signalement(s). 
+                Vérifiez les détails et prenez les mesures appropriées.
+              </p>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-500">Pays</label>
-              <p class="text-gray-900">{{selectedUser.pays}}</p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-500">Ville</label>
-              <p class="text-gray-900">{{selectedUser.ville}}</p>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Activity History -->
-        <div class="bg-white border rounded-lg p-6">
-          <h5 class="text-lg font-semibold text-gray-900 mb-4">Historique d'Activité</h5>
-          <div class="space-y-4">
-            <div class="flex items-center justify-between py-2 border-b border-gray-100">
-              <span class="text-gray-600">Date d'inscription</span>
-              <span class="font-medium">{{selectedUser.dateInscription | date:'dd/MM/yyyy'}}</span>
-            </div>
-            <div class="flex items-center justify-between py-2 border-b border-gray-100">
-              <span class="text-gray-600">Dernière connexion</span>
-              <span class="font-medium">{{selectedUser.derniereConnexion | date:'dd/MM/yyyy à HH:mm'}}</span>
-            </div>
-            <div class="flex items-center justify-between py-2 border-b border-gray-100">
-              <span class="text-gray-600">Nombre de missions</span>
-              <span class="font-medium">{{selectedUser.nombreMissions}}</span>
-            </div>
-            <div class="flex items-center justify-between py-2">
-              <span class="text-gray-600">Note globale</span>
-              <div class="flex items-center">
-                <span class="font-medium mr-2">{{selectedUser.noteGlobale}}/5</span>
-                <div class="flex text-yellow-400">
-                  <span *ngFor="let star of [1,2,3,4,5]" 
-                        [ngClass]="star <= selectedUser.noteGlobale ? 'text-yellow-400' : 'text-gray-300'">
-                    ⭐
-                  </span>
+
+            <!-- Statistics Summary -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h6 class="font-semibold text-blue-800 mb-2">Résumé</h6>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-blue-700">Compte créé</span>
+                  <span class="text-blue-900 font-medium">{{formatDate(selectedUser.dateInscription)}}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-blue-700">Missions</span>
+                  <span class="text-blue-900 font-medium">{{selectedUser.nombreMissions || 0}}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-blue-700">Note moyenne</span>
+                  <span class="text-blue-900 font-medium">{{selectedUser.noteGlobale || 0}}/5</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      
-      <!-- Quick Actions & Stats -->
-      <div>
-        <div class="bg-white border rounded-lg p-6 mb-6">
-          <h5 class="text-lg font-semibold text-gray-900 mb-4">Actions Rapides</h5>
-          <div class="space-y-3">
-            <button 
-              *ngIf="selectedUser.statut === 'actif'" 
-              (click)="confirmAction('désactiver', selectedUser)" 
-              class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
-              ⏸️ Désactiver
-            </button>
-            <button 
-              *ngIf="selectedUser.statut === 'inactif'" 
-              (click)="confirmAction('activer', selectedUser)" 
-              class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-              ▶️ Activer
-            </button>
-            <button 
-              (click)="confirmAction('suspendre', selectedUser)" 
-              class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-              🚫 Suspendre
-            </button>
-            <button 
-              (click)="openEditModal(selectedUser); closeModal('view')" 
-              class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              ✏️ Modifier
-            </button>
-          </div>
-        </div>
         
-        <!-- Warnings -->
-        <div *ngIf="selectedUser.signalements > 0" class="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div class="flex items-center mb-2">
-            <span class="text-red-600 mr-2">⚠️</span>
-            <h6 class="font-semibold text-red-800">Signalements</h6>
-          </div>
-          <p class="text-red-700 text-sm">
-            Cet utilisateur a reçu {{selectedUser.signalements}} signalement(s). 
-            Vérifiez les détails et prenez les mesures appropriées.
-          </p>
+        <div class="flex justify-end pt-6 border-t border-gray-200 mt-6">
+          <button (click)="closeModal('view')" 
+                  class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+            Fermer
+          </button>
         </div>
       </div>
     </div>
-    
-    <div class="flex justify-end pt-6 border-t border-gray-200 mt-6">
-      <button (click)="closeModal('view')" class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-        Fermer
-      </button>
-    </div>
+
   </div>
-</div>

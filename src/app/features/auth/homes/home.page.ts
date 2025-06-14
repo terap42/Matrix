@@ -188,81 +188,58 @@ export class HomePage implements OnInit {
     }
   ];
 
-  constructor(private router: Router) { }
+  constructor(
+    private router: Router
+  ) { }
 
   ngOnInit() {
     this.initializeAnimations();
   }
 
-  // Méthodes de navigation avec gestion d'erreur améliorée
   async navigateToLogin() {
     console.log('Navigation vers login');
-    try {
-      await this.router.navigate(['/login']);
-      this.closeMobileMenu();
-    } catch (err) {
-      console.error('Erreur de navigation vers login:', err);
-    }
+    await this.router.navigate(['/login']);
+    this.closeMobileMenu();
   }
 
   async navigateToRegister(userType?: string) {
     console.log('Navigation vers register avec type:', userType);
-    try {
-      if (userType) {
-        await this.router.navigate(['/register'], { queryParams: { type: userType } });
-      } else {
-        await this.router.navigate(['/register']);
-      }
-      this.closeMobileMenu();
-    } catch (err) {
-      console.error('Erreur de navigation vers register:', err);
+    if (userType) {
+      await this.router.navigate(['register'], { queryParams: { type: userType } });
+    } else {
+      await this.router.navigate(['register']);
     }
+    this.closeMobileMenu();
   }
 
   async navigateToFreelances() {
     console.log('Navigation vers freelances');
-    try {
-      await this.router.navigate(['/freelances']);
-      this.closeMobileMenu();
-    } catch (err) {
-      console.error('Erreur de navigation vers freelances:', err);
-    }
+    await this.router.navigate(['/freelances']);
+    this.closeMobileMenu();
   }
 
   async navigateToFreelancesByCategory(categorySlug: string) {
     console.log('Navigation vers freelances par catégorie:', categorySlug);
-    try {
-      await this.router.navigate(['/freelances'], { queryParams: { category: categorySlug } });
-    } catch (err) {
-      console.error('Erreur de navigation vers freelances par catégorie:', err);
-    }
+    await this.router.navigate(['/freelances'], { queryParams: { category: categorySlug } });
+    this.closeMobileMenu();
   }
 
   async navigateToSupport() {
     console.log('Navigation vers support');
-    try {
-      await this.router.navigate(['/support']);
-    } catch (err) {
-      console.error('Erreur de navigation vers support:', err);
-    }
+    await this.router.navigate(['/support']);
+    this.closeMobileMenu();
   }
 
   async navigateToAbout() {
     console.log('Navigation vers about');
-    try {
-      await this.router.navigate(['/about']);
-    } catch (err) {
-      console.error('Erreur de navigation vers about:', err);
-    }
+    await this.router.navigate(['/about']);
+    this.closeMobileMenu();
   }
 
   async navigateToLegal() {
     console.log('Navigation vers legal');
-    try {
-      await this.router.navigate(['/legal']);
-    } catch (err) {
-      console.error('Erreur de navigation vers legal:', err);
-    }
+    await this.router.navigate(['/legal']);
+    this.closeMobileMenu();
   }
 
   // Gestion du menu mobile
@@ -330,5 +307,10 @@ export class HomePage implements OnInit {
   onScroll(event: any) {
     const scrollTop = event.target.scrollTop;
     // Logique d'animation au scroll si nécessaire
+  }
+
+  isRootRoute(): boolean {
+    // Vérifie si l'URL courante est exactement /homes ou /homes/
+    return this.router.url === '/homes' || this.router.url === '/homes/';
   }
 }

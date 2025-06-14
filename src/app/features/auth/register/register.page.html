@@ -1,113 +1,171 @@
-<div class="h-screen bg-[#215a2e] text-white px-4 py-6 sm:px-6 lg:px-8 overflow-y-auto">
-  <!-- Logo -->
-  <div class="flex justify-center mt-6 sm:mt-10">
-    <img src="assets/images/logoregistre.png" alt="faydah logo" class="h-12 sm:h-16" />
+<!-- src/app/register/register.page.html -->
+<div class="relative w-full h-screen text-white font-sans">
+  <!-- Image de fond avec filtre -->
+  <div class="absolute inset-0 bg-cover bg-center brightness-50" style="background-image: url('/assets/images/log.png');"></div>
+  
+  <!-- Contenu centré -->
+  <div class="relative z-10 flex flex-col justify-center h-full px-8">
+    <!-- Logo texte centré -->
+    <div class="flex justify-center items-center mb-8">
+      <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+        <span class="text-white font-bold text-2xl">M</span>
+      </div>
+      <span class="ml-3 text-4xl font-bold text-yellow-400 tracking-wide font-serif">MATRIX</span>
+    </div>
+
+    <!-- Barre de progression -->
+    <div class="mb-6">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-sm text-gray-300">Étape {{ currentStep }} sur {{ totalSteps }}</span>
+        <span class="text-sm text-yellow-400">{{ currentStep === 1 ? 'Sécurité' : currentStep === 2 ? 'Profil' : 'Finalisation' }}</span>
+      </div>
+      <div class="w-full bg-gray-700 rounded-full h-2">
+        <div class="bg-gradient-to-r from-yellow-400 to-yellow-500 h-2 rounded-full transition-all duration-300" 
+             [style.width]="getProgressWidth()"></div>
+      </div>
+    </div>
+
+    <!-- Étape 1: Informations de connexion -->
+    <div *ngIf="currentStep === 1" class="space-y-6">
+      <div>
+        <label class="block text-sm mb-1">Email *</label>
+        <input [(ngModel)]="formData.email"
+               type="email"
+               class="bg-transparent w-full text-white placeholder-white border-0 border-b border-yellow-400 pb-1 focus:outline-none focus:ring-0 focus:border-yellow-400"
+               placeholder="votre.email@exemple.com" />
+      </div>
+
+      <div>
+        <label class="block text-sm mb-1">Mot de passe *</label>
+        <input [(ngModel)]="formData.password"
+               type="password"
+               class="bg-transparent w-full text-white placeholder-white border-0 border-b border-yellow-400 pb-1 focus:outline-none focus:ring-0 focus:border-yellow-400"
+               placeholder="Minimum 6 caractères" />
+      </div>
+
+      <div>
+        <label class="block text-sm mb-1">Confirmer le mot de passe *</label>
+        <input [(ngModel)]="confirmPassword"
+               type="password"
+               class="bg-transparent w-full text-white placeholder-white border-0 border-b border-yellow-400 pb-1 focus:outline-none focus:ring-0 focus:border-yellow-400"
+               placeholder="Répétez votre mot de passe" />
+      </div>
+
+      <div class="flex justify-end pt-4">
+        <button (click)="nextStep()" 
+                class="px-6 py-3 bg-yellow-400 text-black font-medium rounded-lg hover:bg-yellow-300 transition-colors">
+          Suivant
+        </button>
+      </div>
+    </div>
+
+    <!-- Étape 2: Informations personnelles -->
+    <div *ngIf="currentStep === 2" class="space-y-6">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm mb-1">Prénom *</label>
+          <input [(ngModel)]="formData.first_name"
+                 type="text"
+                 class="bg-transparent w-full text-white placeholder-white border-0 border-b border-yellow-400 pb-1 focus:outline-none focus:ring-0 focus:border-yellow-400"
+                 placeholder="John" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Nom *</label>
+          <input [(ngModel)]="formData.last_name"
+                 type="text"
+                 class="bg-transparent w-full text-white placeholder-white border-0 border-b border-yellow-400 pb-1 focus:outline-none focus:ring-0 focus:border-yellow-400"
+                 placeholder="Doe" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm mb-3">Type de compte *</label>
+        <div class="space-y-3">
+          <label class="flex items-center cursor-pointer">
+            <input [(ngModel)]="formData.user_type" 
+                   name="user_type" 
+                   type="radio" 
+                   value="freelance" 
+                   class="sr-only">
+            <div class="w-5 h-5 rounded-full border-2 border-yellow-400 mr-3 flex items-center justify-center"
+                 [class.bg-yellow-400]="formData.user_type === 'freelance'">
+              <div *ngIf="formData.user_type === 'freelance'" class="w-2 h-2 rounded-full bg-black"></div>
+            </div>
+            <span>Je suis un freelance</span>
+          </label>
+          <label class="flex items-center cursor-pointer">
+            <input [(ngModel)]="formData.user_type" 
+                   name="user_type" 
+                   type="radio" 
+                   value="client"
+                   class="sr-only">
+            <div class="w-5 h-5 rounded-full border-2 border-yellow-400 mr-3 flex items-center justify-center"
+                 [class.bg-yellow-400]="formData.user_type === 'client'">
+              <div *ngIf="formData.user_type === 'client'" class="w-2 h-2 rounded-full bg-black"></div>
+            </div>
+            <span>Je recherche des freelances</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex justify-between pt-4">
+        <button (click)="prevStep()" 
+                class="px-6 py-3 border border-yellow-400 text-yellow-400 font-medium rounded-lg hover:bg-yellow-400 hover:text-black transition-colors">
+          Précédent
+        </button>
+        <button (click)="nextStep()" 
+                class="px-6 py-3 bg-yellow-400 text-black font-medium rounded-lg hover:bg-yellow-300 transition-colors">
+          Suivant
+        </button>
+      </div>
+    </div>
+
+    <!-- Étape 3: Informations optionnelles -->
+    <div *ngIf="currentStep === 3" class="space-y-6">
+      <div>
+        <label class="block text-sm mb-1">Téléphone</label>
+        <input [(ngModel)]="formData.phone"
+               type="tel"
+               class="bg-transparent w-full text-white placeholder-white border-0 border-b border-yellow-400 pb-1 focus:outline-none focus:ring-0 focus:border-yellow-400"
+               placeholder="+33 1 23 45 67 89" />
+      </div>
+
+      <div>
+        <label class="block text-sm mb-1">Localisation</label>
+        <input [(ngModel)]="formData.location"
+               type="text"
+               class="bg-transparent w-full text-white placeholder-white border-0 border-b border-yellow-400 pb-1 focus:outline-none focus:ring-0 focus:border-yellow-400"
+               placeholder="Paris, France" />
+      </div>
+
+      <div>
+        <label class="block text-sm mb-1">Bio / Présentation</label>
+        <textarea [(ngModel)]="formData.bio"
+                  rows="3"
+                  class="bg-transparent w-full text-white placeholder-white border border-yellow-400 rounded p-2 focus:outline-none focus:ring-0 focus:border-yellow-400 resize-none"
+                  placeholder="Parlez-vous en quelques mots..."></textarea>
+      </div>
+
+      <div class="flex justify-between pt-4">
+        <button (click)="prevStep()" 
+                class="px-6 py-3 border border-yellow-400 text-yellow-400 font-medium rounded-lg hover:bg-yellow-400 hover:text-black transition-colors">
+          Précédent
+        </button>
+        <button (click)="register()" 
+                [disabled]="isLoading"
+                class="px-6 py-3 bg-yellow-400 text-black font-medium rounded-lg hover:bg-yellow-300 transition-colors disabled:opacity-50">
+          <span *ngIf="!isLoading">Créer mon compte</span>
+          <span *ngIf="isLoading">Création...</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Lien de connexion -->
+    <div class="text-center text-sm text-gray-300 mt-8">
+      <p>Déjà inscrit ?</p>
+      <a (click)="goToLogin()" class="text-yellow-400 underline font-medium hover:text-yellow-300 transition-colors cursor-pointer">
+        Se connecter ici
+      </a>
+    </div>
   </div>
-
-  <!-- Titre -->
-  <h1 class="text-xl sm:text-2xl font-bold text-center mt-6 mb-4">INSCRIPTION</h1>
-
-  <!-- Segment genre -->
-  <div class="flex justify-center my-6 space-x-4" id="gender-selector">
-    <button
-      type="button"
-      class="bg-[#2e7d32] text-white px-4 py-2 rounded-full border-2 border-transparent focus:outline-none transition-all text-sm sm:text-base"
-      data-gender="M."
-      onclick="selectGender(this)"
-    >
-      M.
-    </button>
-    <button
-      type="button"
-      class="bg-[#2e7d32] text-white px-4 py-2 rounded-full border-2 border-transparent focus:outline-none transition-all text-sm sm:text-base"
-      data-gender="Mme."
-      onclick="selectGender(this)"
-    >
-      Mme.
-    </button>
-  </div>
-
-  <!-- Formulaire -->
-  <form class="space-y-6 max-w-md w-full mx-auto" onsubmit="return submitForm(event)">
-    <!-- Champ caché genre -->
-    <input type="hidden" name="genre" id="selected-gender" required />
-
-    <div>
-      <input
-        type="text"
-        name="nom"
-        placeholder="Nom"
-        class="w-full bg-transparent text-white placeholder-gray-300 py-2 border-0 border-b border-white focus:border-white focus:outline-none focus:ring-0 text-sm sm:text-base"
-        required
-      />
-    </div>
-
-    <div>
-      <input
-        type="text"
-        name="prenom"
-        placeholder="Prénom"
-        class="w-full bg-transparent text-white placeholder-gray-300 py-2 border-0 border-b border-white focus:border-white focus:outline-none focus:ring-0 text-sm sm:text-base"
-        required
-      />
-    </div>
-
-    <div>
-      <input
-        type="tel"
-        name="telephone"
-        placeholder="Numéro de téléphone"
-        class="w-full bg-transparent text-white placeholder-gray-300 py-2 border-0 border-b border-white focus:border-white focus:outline-none focus:ring-0 text-sm sm:text-base"
-        required
-      />
-    </div>
-
-    <div>
-      <input
-        type="text"
-        name="ville"
-        placeholder="Pays / Ville de résidence"
-        class="w-full bg-transparent text-white placeholder-gray-300 py-2 border-0 border-b border-white focus:border-white focus:outline-none focus:ring-0 text-sm sm:text-base"
-        required
-      />
-    </div>
-
-    <div>
-      <input
-        type="email"
-        name="email"
-        placeholder="Adresse email"
-        class="w-full bg-transparent text-white placeholder-gray-300 py-2 border-0 border-b border-white focus:border-white focus:outline-none focus:ring-0 text-sm sm:text-base"
-        required
-      />
-    </div>
-
-    <div>
-      <input
-        type="text"
-        name="dahira"
-        placeholder="Dahira"
-        class="w-full bg-transparent text-white placeholder-gray-300 py-2 border-0 border-b border-white focus:border-white focus:outline-none focus:ring-0 text-sm sm:text-base"
-      />
-    </div>
-
-    <div>
-      <input
-        type="text"
-        name="muqadam"
-        placeholder="Muqadam"
-        class="w-full bg-transparent text-white placeholder-gray-300 py-2 border-0 border-b border-white focus:border-white focus:outline-none focus:ring-0 text-sm sm:text-base"
-      />
-    </div>
-
-    <!-- Bouton soumettre -->
-    <div class="flex justify-center mt-6">
-      <button
-        type="submit"
-        class="text-white text-2xl p-3 rounded-full hover:bg-[#1b4b25] transition-colors"
-      >
-        <i class="fas fa-arrow-right"></i>
-      </button>
-    </div>
-  </form>
 </div>

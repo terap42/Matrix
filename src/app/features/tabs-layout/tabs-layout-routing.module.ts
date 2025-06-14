@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-
 import { TabsLayoutPage } from './tabs-layout.page';
+import { AuthGuard } from '../auth/guards/auth.guard';
 
 const routes: Routes = [
   {
@@ -10,26 +10,32 @@ const routes: Routes = [
     children: [
       {
         path: 'home',
-        loadChildren: () => import('../home/home.module').then(m => m.HomePageModule)
+        loadChildren: () => import('../home/home.module').then(m => m.HomePageModule),
+        canActivate: [AuthGuard]
       },
       {
         path: 'profile',
-        loadChildren: () => import('../profile/profile.module').then(m => m.ProfilePageModule)
+        loadChildren: () => import('../profile/profile.module').then(m => m.ProfilePageModule),
+        canActivate: [AuthGuard]
       },
       {
         path: 'mission',
-        loadChildren: () => import('../mission/mission.module').then(m => m.MissionPageModule)
+        loadChildren: () => import('../mission/mission.module').then(m => m.MissionPageModule),
+        canActivate: [AuthGuard]
       },
       {
         path: 'messagerie',
-        loadChildren: () => import('../messagerie/messagerie.module').then(m => m.MessageriePageModule)
+        loadChildren: () => import('../messagerie/messagerie.module').then(m => m.MessageriePageModule),
+        canActivate: [AuthGuard]
       },
       {
         path: 'messageriefrree',
-        loadChildren: () => import('../messageriefrree/messageriefrree.module').then(m => m.MessageriefrreePageModule)
+        loadChildren: () => import('../messageriefrree/messageriefrree.module').then(m => m.MessageriefrreePageModule),
+        canActivate: [AuthGuard]
       },
       {
         path: 'missions',
+        canActivate: [AuthGuard],
         children: [
           {
             path: '',
@@ -50,9 +56,8 @@ const routes: Routes = [
   }
 ];
 
-
 @NgModule({
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
 })
-export class TabsLayoutPageRoutingModule {}
+export class TabsLayoutPageRoutingModule { }

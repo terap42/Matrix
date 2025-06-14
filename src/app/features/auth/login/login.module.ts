@@ -1,3 +1,4 @@
+// src/app/features/auth/login/login.module.ts
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,10 +9,12 @@ import { LoginPage } from './login.page';
 @NgModule({
   imports: [
     CommonModule,
-    FormsModule,
+    FormsModule, // ✅ Nécessaire pour ngModel
     IonicModule,
     LoginPageRoutingModule
   ],
-  declarations: [LoginPage]
+  declarations: [
+    LoginPage // ✅ Déclarer le composant ici
+  ]
 })
 export class LoginPageModule {}
