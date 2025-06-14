@@ -1,6 +1,88 @@
-/* Styles pour la page des missions */
+/* missions.page.scss - Version complète et corrigée */
 
-// Styles personnalisés pour les classes Tailwind
+// ===== CORRECTION TEXTE FORMULAIRES =====
+// Force le texte noir dans tous les inputs, textareas et selects
+input, textarea, select {
+  color: #1f2937 !important; // Texte noir/gris foncé
+  background-color: white !important; // Fond blanc
+  
+  &::placeholder {
+    color: #9ca3af !important; // Placeholder gris
+    opacity: 1 !important;
+  }
+  
+  &:focus {
+    color: #1f2937 !important; // Texte noir même en focus
+  }
+  
+  &:disabled {
+    color: #6b7280 !important; // Gris pour les champs désactivés
+    background-color: #f9fafb !important;
+  }
+}
+
+// Spécifiquement pour les inputs de type date
+input[type="date"] {
+  color: #1f2937 !important;
+  
+  &::-webkit-calendar-picker-indicator {
+    filter: invert(0.5); // Rend l'icône calendrier visible
+  }
+}
+
+// Pour les inputs de type number
+input[type="number"] {
+  color: #1f2937 !important;
+  
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    opacity: 1;
+  }
+}
+
+// Pour les champs dans le modal
+.modal-content {
+  input, textarea, select {
+    color: #1f2937 !important;
+    background-color: white !important;
+    
+    &::placeholder {
+      color: #9ca3af !important;
+    }
+  }
+}
+
+// Style pour les options des select
+option {
+  color: #1f2937 !important;
+  background-color: white !important;
+}
+
+// Style spécifique pour les inputs dans les forms Angular
+form {
+  input, textarea, select {
+    color: #1f2937 !important;
+    background-color: white !important;
+    
+    &.ng-invalid.ng-touched {
+      border-color: #ef4444 !important;
+      color: #1f2937 !important; // Garde le texte noir même en erreur
+    }
+    
+    &.ng-valid.ng-touched {
+      border-color: #10b981 !important;
+      color: #1f2937 !important; // Garde le texte noir même en succès
+    }
+  }
+}
+
+// Correction pour les labels et textes des formulaires
+label {
+  color: #374151 !important;
+  font-weight: 500;
+}
+
+// ===== STYLES TAILWIND PERSONNALISÉS =====
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -8,7 +90,7 @@
   overflow: hidden;
 }
 
-// Animation pour les cartes de mission
+// ===== ANIMATIONS CARTES MISSION =====
 .mission-card {
   transition: all 0.3s ease;
   
@@ -16,9 +98,22 @@
     transform: translateY(-2px);
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
+  
+  // Correction couleurs texte dans les cartes
+  h3 {
+    color: #1f2937 !important;
+  }
+  
+  p {
+    color: #6b7280 !important;
+  }
+  
+  span {
+    color: #6b7280 !important;
+  }
 }
 
-// Styles pour les badges d'urgence
+// ===== BADGES URGENCE =====
 .urgent-badge {
   animation: pulse 2s infinite;
 }
@@ -32,21 +127,24 @@
   }
 }
 
-// Styles pour le conteneur principal
+// ===== CONTENEUR PRINCIPAL =====
 .missions-container {
   padding-bottom: 120px; // Espace pour la barre de navigation
 }
 
-// Styles pour les filtres
+// ===== FILTRES =====
 .filter-section {
   backdrop-filter: blur(10px);
   background: rgba(255, 255, 255, 0.95);
 }
 
-// Styles pour les compétences
+// ===== COMPÉTENCES TAGS =====
 .skill-tag {
   position: relative;
   overflow: hidden;
+  color: #1e40af !important; // Bleu foncé pour les skills
+  background-color: #dbeafe !important; // Fond bleu clair
+  animation: slideIn 0.2s ease-out;
   
   &::before {
     content: '';
@@ -64,10 +162,22 @@
   }
 }
 
-// Styles pour les boutons
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// ===== BOUTONS =====
 .btn-primary {
   position: relative;
   overflow: hidden;
+  transition: all 0.2s ease;
   
   &::before {
     content: '';
@@ -80,19 +190,37 @@
     transition: left 0.5s;
   }
   
-  &:hover::before {
-    left: 100%;
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    
+    &::before {
+      left: 100%;
+    }
+  }
+  
+  &:active {
+    transform: translateY(0);
   }
 }
 
-// Styles pour les avatars
+// Spécifiquement pour les boutons pour garder leur couleur
+.bg-blue-600, .bg-blue-500 {
+  color: white !important;
+}
+
+.bg-gray-100 {
+  color: #374151 !important;
+}
+
+// ===== AVATARS =====
 .avatar {
   object-fit: cover;
   border: 2px solid rgba(255, 255, 255, 0.8);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-// Styles pour les icônes de catégorie
+// ===== ICÔNES CATÉGORIE =====
 .category-icon {
   font-size: 1.5rem;
   display: flex;
@@ -105,7 +233,7 @@
   height: 48px;
 }
 
-// Styles pour les états des missions
+// ===== ÉTATS MISSIONS =====
 .mission-status {
   &.urgent {
     border-left: 4px solid #ef4444;
@@ -120,29 +248,31 @@
   }
 }
 
-// Styles pour le scroll personnalisé
-.custom-scrollbar {
+// ===== SCROLL PERSONNALISÉ =====
+.custom-scrollbar, .scrollable-content {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+  
   &::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
   
   &::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 3px;
+    background: transparent;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background-color: rgba(156, 163, 175, 0.5);
     border-radius: 3px;
     
     &:hover {
-      background: #94a3b8;
+      background-color: rgba(156, 163, 175, 0.7);
     }
   }
 }
 
-// Styles pour les transitions
+// ===== ANIMATIONS GÉNÉRALES =====
 .fade-in {
   animation: fadeIn 0.5s ease-in;
 }
@@ -158,7 +288,25 @@
   }
 }
 
-// Styles pour les cartes vides
+// Animation pour les nouvelles missions ajoutées
+.new-mission {
+  animation: newMissionSlide 0.5s ease-out;
+}
+
+@keyframes newMissionSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    background-color: transparent;
+  }
+}
+
+// ===== ÉTAT VIDE =====
 .empty-state {
   text-align: center;
   padding: 3rem 1rem;
@@ -181,26 +329,47 @@
   }
 }
 
-// Responsive design
-@media (max-width: 768px) {
-  .missions-container {
-    padding-bottom: 100px;
+// ===== MODAL STYLES =====
+.modal-overlay {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
   }
-  
-  .mission-card {
-    margin: 0 -1rem;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-  }
-  
-  .filter-section {
-    margin: 0 -1rem;
-    border-radius: 0;
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-// Styles pour les animations de chargement
+// ===== INPUTS AMÉLIORÉS =====
+.form-input {
+  transition: all 0.2s ease;
+  color: #1f2937 !important;
+  
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    color: #1f2937 !important;
+  }
+}
+
+// Correction pour les champs avec focus ring
+input:focus, textarea:focus, select:focus {
+  color: #1f2937 !important;
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+  border-color: #3b82f6 !important;
+}
+
+// ===== SKELETON LOADING =====
 .loading-skeleton {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
@@ -216,43 +385,7 @@
   }
 }
 
-// Styles pour les notifications
-.notification {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 1000;
-  padding: 1rem;
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #10b981;
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-// Styles pour le badge de compteur
-.counter-badge {
-  min-width: 1.5rem;
-  height: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-// Styles pour les états de chargement
+// ===== ÉTAT CHARGEMENT =====
 .loading-state {
   display: flex;
   justify-content: center;
@@ -274,28 +407,43 @@
   100% { transform: rotate(360deg); }
 }
 
-// Styles pour améliorer l'accessibilité
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+// ===== NOTIFICATIONS =====
+.notification {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  padding: 1rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #10b981;
+  animation: slideInNotification 0.3s ease-out;
 }
 
-// Focus states pour l'accessibilité
-button:focus,
-input:focus,
-select:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
+@keyframes slideInNotification {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
-// Styles pour les tooltips
+// ===== BADGE COMPTEUR =====
+.counter-badge {
+  min-width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+// ===== TOOLTIPS =====
 .tooltip {
   position: relative;
   
@@ -325,4 +473,62 @@ select:focus {
     border-top-color: #1f2937;
     z-index: 1000;
   }
+}
+
+// ===== ACCESSIBILITÉ =====
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ===== RESPONSIVE DESIGN =====
+@media (max-width: 768px) {
+  .missions-container {
+    padding-bottom: 100px;
+  }
+  
+  .mission-card {
+    margin: 0 -1rem;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    padding: 1rem;
+  }
+  
+  .filter-section {
+    margin: 0 -1rem;
+    border-radius: 0;
+  }
+  
+  .missions-grid {
+    padding: 0.5rem;
+  }
+  
+  .header-actions {
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .modal-content {
+    margin: 1rem;
+    max-height: 95vh;
+  }
+  
+  .modal-form {
+    padding: 1rem;
+  }
+}
+
+// ===== CORRECTION ICÔNES SVG =====
+svg {
+  fill: currentColor;
+  stroke: currentColor;
 }

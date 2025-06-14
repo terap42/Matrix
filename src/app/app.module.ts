@@ -14,6 +14,7 @@ import { UsersManagementService } from './Admin/pages/utilisateurs/services/user
 
 // Interceptors
 import { UsersAuthInterceptor } from './Admin/pages/utilisateurs/interceptors/users-auth.interceptor';
+import { MissionService } from './features/missions/services/mission.service';
 
 @NgModule({
   declarations: [AppComponent],
@@ -30,6 +31,7 @@ import { UsersAuthInterceptor } from './Admin/pages/utilisateurs/interceptors/us
     // ✅ Services
     AuthService,
     UsersManagementService,
+    MissionService,
     
     // ✅ Interceptor corrigé
     {

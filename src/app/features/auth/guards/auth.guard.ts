@@ -89,7 +89,7 @@ export class NoAuthGuard implements CanActivate {
               break;
             case 'freelance':
             case 'client':
-              this.router.navigate(['/tabs/dashboard']);
+              this.router.navigate(['/tabs/home']);
               break;
             default:
               this.router.navigate(['/tabs']);

@@ -61,7 +61,7 @@ export class LoginPage {
             this.router.navigateByUrl('tabs/home', { replaceUrl: true });
             break;
           case 'client':
-            this.router.navigateByUrl('/tabs/dashboard', { replaceUrl: true });
+            this.router.navigateByUrl('/tabs/home', { replaceUrl: true });
             break;
           default:
             this.router.navigateByUrl('/tabs', { replaceUrl: true });

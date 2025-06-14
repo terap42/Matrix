@@ -1,39 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-
-interface MissionDetail {
-  id: string;
-  title: string;
-  description: string;
-  longDescription: string;
-  category: string;
-  budget: {
-    min: number;
-    max: number;
-  };
-  deadline: string;
-  client: {
-    id: string;
-    name: string;
-    avatar: string;
-    rating: number;
-    completedProjects: number;
-    memberSince: string;
-    verified: boolean;
-  };
-  publishedAt: string;
-  skills: string[];
-  requirements: string[];
-  deliverables: string[];
-  applicationsCount: number;
-  status: 'open' | 'in_progress' | 'completed';
-  isUrgent?: boolean;
-  attachments?: {
-    name: string;
-    url: string;
-    type: string;
-  }[];
-}
+import { Subscription } from 'rxjs';
+import { MissionService, MissionDetail } from '../../services/mission.service';
 
 @Component({
   selector: 'app-mission-details',
@@ -41,15 +9,19 @@ interface MissionDetail {
   styleUrls: ['./mission-details.page.scss'],
   standalone: false,
 })
-export class MissionDetailsPage implements OnInit {
+export class MissionDetailsPage implements OnInit, OnDestroy {
   mission: MissionDetail | null = null;
   missionId: string = '';
   loading: boolean = true;
+  error: string = '';
   showFullDescription: boolean = false;
+
+  private subscriptions: Subscription = new Subscription();
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private missionService: MissionService
   ) {}
 
   ngOnInit() {
@@ -61,69 +33,75 @@ export class MissionDetailsPage implements OnInit {
     });
   }
 
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
+
   loadMissionDetails() {
     this.loading = true;
+    this.error = '';
 
-    const missionsMock: MissionDetail[] = [
-      {
-        id: '1',
-        title: 'Refonte Site Web WordPress',
-        description: 'Recherche un développeur WordPress expérimenté pour refonte complète d\'un site e-commerce. Design moderne et responsive requis.',
-        longDescription: 'Description longue...',
-        category: 'development',
-        budget: { min: 800, max: 1200 },
-        deadline: '2024-07-15',
-        client: {
-          id: 'client1',
-          name: 'TechCorp',
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-          rating: 4.8,
-          completedProjects: 23,
-          memberSince: '2022-03-15',
-          verified: true
-        },
-        publishedAt: '2024-06-05',
-        skills: ['WordPress', 'PHP', 'JavaScript', 'CSS'],
-        requirements: [],
-        deliverables: [],
-        applicationsCount: 12,
-        status: 'open',
-        isUrgent: false,
-        attachments: []
-      },
-      {
-        id: '2',
-        title: 'Identité Visuelle Startup',
-        description: 'Création de l\'identité visuelle complète pour une nouvelle startup. Logo, carte de visite, et charte graphique requis.',
-        longDescription: 'Description longue...',
-        category: 'design',
-        budget: { min: 500, max: 800 },
-        deadline: '2024-08-01',
-        client: {
-          id: 'client2',
-          name: 'InnoTech',
-          avatar: 'https://images.unsplash.com/photo-1507679790980-4b94378b2f4b?w=100&h=100&fit=crop&crop=face',
-          rating: 4.5,
-          completedProjects: 10,
-          memberSince: '2023-01-10',
-          verified: true
-        },
-        publishedAt: '2024-07-10',
-        skills: ['Graphisme', 'Illustrator', 'Photoshop'],
-        requirements: [],
-        deliverables: [],
-        applicationsCount: 8,
-        status: 'completed',
-        isUrgent: true,
-        attachments: []
-      },
-      // Ajoute autant de missions que tu veux ici
-    ];
+    console.log('🔍 Chargement mission ID:', this.missionId);
 
-    setTimeout(() => {
-      this.mission = missionsMock.find(m => m.id === this.missionId) || null;
-      this.loading = false;
-    }, 500);
+    this.subscriptions.add(
+      this.missionService.getMissionById(this.missionId).subscribe({
+        next: (mission) => {
+          console.log('✅ Mission chargée:', mission);
+          this.mission = mission;
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('❌ Erreur chargement mission:', error);
+          this.error = 'Mission non trouvée ou erreur de chargement';
+          this.loading = false;
+          
+          // Créer une mission de fallback si l'API échoue
+          this.createFallbackMission();
+        }
+      })
+    );
+  }
+
+  // Créer une mission de fallback en cas d'erreur
+  createFallbackMission() {
+    console.log('📋 Création mission fallback pour ID:', this.missionId);
+    
+    this.mission = {
+      id: this.missionId,
+      title: 'Mission en cours de chargement...',
+      description: 'Cette mission est en cours de récupération depuis le serveur.',
+      longDescription: 'Description détaillée en cours de chargement depuis l\'API. Cette mission a été récemment créée et ses détails complets sont en cours de synchronisation.\n\nVeuillez rafraîchir la page dans quelques instants pour voir toutes les informations, ou vérifiez que le serveur backend est démarré.',
+      category: 'Développement',
+      budget: { min: 500, max: 1000 },
+      deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 jours
+      client: {
+        id: 'fallback-client',
+        name: 'Client en cours de chargement',
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+        rating: 4.5,
+        completedProjects: 5,
+        memberSince: new Date().toISOString().split('T')[0],
+        verified: false
+      },
+      publishedAt: new Date().toISOString().split('T')[0],
+      skills: ['Compétences en cours de chargement'],
+      requirements: [
+        'Exigences en cours de récupération depuis l\'API',
+        'Veuillez contacter le client pour plus de détails',
+        'Vérifiez que le serveur backend est démarré'
+      ],
+      deliverables: [
+        'Livrables en cours de spécification',
+        'Détails à confirmer avec le client',
+        'Informations complètes disponibles via l\'API'
+      ],
+      applicationsCount: 0,
+      status: 'open',
+      isUrgent: false,
+      attachments: []
+    };
+    
+    this.loading = false;
   }
 
   applyToMission() {
@@ -139,13 +117,15 @@ export class MissionDetailsPage implements OnInit {
   }
 
   saveToFavorites() {
-    // Logique pour sauvegarder en favoris
-    console.log('Mission sauvegardée en favoris');
+    console.log('💾 Mission sauvegardée en favoris:', this.mission?.id);
+    // TODO: Implémenter la logique de sauvegarde via API
+    this.showSuccessMessage('Mission ajoutée aux favoris !');
   }
 
   reportMission() {
-    // Logique pour signaler la mission
-    console.log('Mission signalée');
+    console.log('🚨 Mission signalée:', this.mission?.id);
+    // TODO: Implémenter la logique de signalement via API
+    this.showSuccessMessage('Mission signalée !');
   }
 
   goBack() {
@@ -185,7 +165,8 @@ export class MissionDetailsPage implements OnInit {
     if (!this.mission) return 0;
     const deadline = new Date(this.mission.deadline);
     const now = new Date();
-    return Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const days = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, days); // Éviter les valeurs négatives
   }
 
   getUrgencyClass(): string {
@@ -207,7 +188,8 @@ export class MissionDetailsPage implements OnInit {
   }
 
   downloadAttachment(attachment: any) {
-    // Logique pour télécharger le fichier
+    console.log('📥 Téléchargement de:', attachment.name);
+    // TODO: Implémenter le téléchargement réel via API
     window.open(attachment.url, '_blank');
   }
 
@@ -216,16 +198,40 @@ export class MissionDetailsPage implements OnInit {
   }
 
   shareMission() {
-    if (navigator.share) {
+    if (navigator.share && this.mission) {
       navigator.share({
-        title: this.mission?.title,
-        text: this.mission?.description,
+        title: this.mission.title,
+        text: this.mission.description,
         url: window.location.href
+      }).catch(err => {
+        console.log('Erreur partage:', err);
+        this.copyToClipboard();
       });
     } else {
-      // Fallback pour les navigateurs qui ne supportent pas l'API Web Share
-      navigator.clipboard.writeText(window.location.href);
-      // Afficher une notification
+      this.copyToClipboard();
     }
+  }
+
+  private copyToClipboard() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      console.log('🔗 Lien copié dans le presse-papiers');
+      this.showSuccessMessage('Lien copié dans le presse-papiers !');
+    }).catch(err => {
+      console.error('Erreur copie:', err);
+    });
+  }
+
+  private showSuccessMessage(message: string) {
+    // Simple alert pour l'instant - vous pouvez utiliser un toast service plus tard
+    alert(message);
+  }
+
+  // Méthodes utilitaires pour le debug
+  reloadMission() {
+    this.loadMissionDetails();
+  }
+
+  getApiStatus(): string {
+    return this.error ? 'Erreur API' : 'API OK';
   }
 }

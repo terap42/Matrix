@@ -1,5 +1,16 @@
-<div class="min-h-screen bg-gray-50">
-  <!-- Header avec titre et recherche -->
+<!-- Indicateur de statut -->
+<div *ngIf="loading || error" class="fixed top-0 left-0 right-0 z-50 bg-blue-500 text-white text-center py-2 text-sm">
+  <div *ngIf="loading" class="flex items-center justify-center space-x-2">
+    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+    <span>Chargement des missions...</span>
+  </div>
+  <div *ngIf="error" class="bg-red-500 px-4 py-2">
+    {{ error }} - <button (click)="refreshMissions()" class="underline">Réessayer</button>
+  </div>
+</div>
+
+<div class="min-h-screen bg-gray-50" [class.pt-12]="loading || error">
+  <!-- Header avec titre et boutons -->
   <div class="bg-white shadow-sm border-b border-gray-200 px-4 py-4">
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-2xl font-bold text-gray-900">Missions</h1>
@@ -11,6 +22,15 @@
           <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
           </svg>
+        </button>
+        <button 
+          (click)="openAddMissionModal()" 
+          class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          <span class="text-sm font-medium">Ajouter</span>
         </button>
       </div>
     </div>
@@ -176,6 +196,184 @@
             </button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal d'ajout de mission -->
+  <div *ngIf="showAddMissionModal" class="fixed inset-0 z-50 flex items-center justify-center">
+    <!-- Overlay -->
+    <div 
+      class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+      (click)="closeAddMissionModal()"
+    ></div>
+    
+    <!-- Modal Content -->
+    <div class="relative bg-white rounded-xl shadow-xl mx-4 w-full max-w-lg max-h-[90vh] overflow-hidden">
+      <!-- Header du modal -->
+      <div class="flex items-center justify-between p-6 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">Nouvelle Mission</h2>
+        <button 
+          (click)="closeAddMissionModal()" 
+          class="p-1 rounded-full hover:bg-gray-100 transition-colors"
+        >
+          <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Formulaire scrollable -->
+      <div class="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+        <form (ngSubmit)="onSubmitMission()" #missionForm="ngForm" class="space-y-4">
+          <!-- Titre -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Titre de la mission *</label>
+            <input 
+              type="text" 
+              [(ngModel)]="newMission.title"
+              name="title"
+              required
+              placeholder="Ex: Développement d'une application mobile"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+            <textarea 
+              [(ngModel)]="newMission.description"
+              name="description"
+              required
+              rows="4"
+              placeholder="Décrivez votre projet en détail..."
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            ></textarea>
+          </div>
+
+          <!-- Catégorie -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Catégorie *</label>
+            <select 
+              [(ngModel)]="newMission.category"
+              name="category"
+              required
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Sélectionnez une catégorie</option>
+              <option value="design">Design</option>
+              <option value="development">Développement</option>
+              <option value="marketing">Marketing</option>
+              <option value="writing">Rédaction</option>
+            </select>
+          </div>
+
+          <!-- Budget -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Budget min (€) *</label>
+              <input 
+                type="number" 
+                [(ngModel)]="newMission.budget.min"
+                name="budgetMin"
+                required
+                min="0"
+                placeholder="500"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Budget max (€) *</label>
+              <input 
+                type="number" 
+                [(ngModel)]="newMission.budget.max"
+                name="budgetMax"
+                required
+                min="0"
+                placeholder="1000"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+            </div>
+          </div>
+
+          <!-- Date limite -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Date limite *</label>
+            <input 
+              type="date" 
+              [(ngModel)]="newMission.deadline"
+              name="deadline"
+              required
+              [min]="getCurrentDate()"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+          </div>
+
+          <!-- Compétences -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Compétences requises</label>
+            <div class="flex flex-wrap gap-2 mb-3" *ngIf="newMission.skills.length > 0">
+              <span *ngFor="let skill of newMission.skills; let i = index" 
+                    class="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full flex items-center space-x-1">
+                <span>{{ skill }}</span>
+                <button type="button" (click)="removeSkill(i)" class="text-blue-500 hover:text-blue-700">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </span>
+            </div>
+            <div class="flex space-x-2">
+              <input 
+                type="text" 
+                [(ngModel)]="skillInput"
+                name="skillInput"
+                placeholder="Ajouter une compétence"
+                (keyup.enter)="addSkill()"
+                class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+              <button 
+                type="button" 
+                (click)="addSkill()"
+                class="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Ajouter
+              </button>
+            </div>
+          </div>
+
+          <!-- Mission urgente -->
+          <div class="flex items-center space-x-3">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="newMission.isUrgent"
+              name="isUrgent"
+              id="isUrgent"
+              class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            >
+            <label for="isUrgent" class="text-sm text-gray-700">Mission urgente</label>
+          </div>
+        </form>
+      </div>
+
+      <!-- Footer du modal -->
+      <div class="flex space-x-3 p-6 border-t border-gray-200">
+        <button 
+          type="button"
+          (click)="closeAddMissionModal()"
+          class="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+        >
+          Annuler
+        </button>
+        <button 
+          type="button"
+          (click)="onSubmitMission()"
+          [disabled]="!isFormValid()"
+          class="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+        >
+          Publier la mission
+        </button>
       </div>
     </div>
   </div>
