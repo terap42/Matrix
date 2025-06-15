@@ -33,6 +33,11 @@ const routes: Routes = [
         loadChildren: () => import('../messageriefrree/messageriefrree.module').then(m => m.MessageriefrreePageModule),
         canActivate: [AuthGuard]
       },
+      
+       {
+    path: 'freelance-profile',
+    loadChildren: () => import('../freelance-profile/freelance-profile.module').then( m => m.FreelanceProfilePageModule)
+      },
       {
         path: 'missions',
         canActivate: [AuthGuard],

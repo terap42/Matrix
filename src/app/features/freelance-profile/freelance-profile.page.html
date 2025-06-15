@@ -1,0 +1,261 @@
+<div class="h-screen bg-white overflow-hidden flex flex-col">
+  <!-- Contenu du profil scrollable -->
+  <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 pb-24">
+    <div class="max-w-2xl mx-auto space-y-4 sm:space-y-6">
+      <h2 class="text-gray-800 text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Mon Profil</h2>
+
+      <!-- Informations personnelles -->
+      <div class="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200">
+        <h3 class="text-gray-800 text-base sm:text-lg font-semibold mb-3 sm:mb-4">Informations personnelles</h3>
+        
+        <div class="space-y-3 sm:space-y-4">
+          <div>
+            <label class="block text-gray-700 text-sm font-medium mb-2">Nom complet</label>
+            <input 
+              [(ngModel)]="profile.fullName" 
+              type="text" 
+              placeholder="Votre nom complet"
+              class="w-full p-2.5 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base text-gray-900 placeholder-gray-400">
+          </div>
+
+          <div>
+            <label class="block text-gray-700 text-sm font-medium mb-2">Titre professionnel</label>
+            <input 
+              [(ngModel)]="profile.title" 
+              type="text" 
+              placeholder="Ex: Développeur Full-Stack & Designer UI/UX"
+              class="w-full p-2.5 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base text-gray-900 placeholder-gray-400">
+          </div>
+
+          <div>
+            <label class="block text-gray-700 text-sm font-medium mb-2">Bio</label>
+            <textarea 
+              [(ngModel)]="profile.bio" 
+              rows="3" 
+              placeholder="Décrivez votre expérience et vos compétences..."
+              class="w-full p-2.5 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm sm:text-base text-gray-900 placeholder-gray-400"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informations professionnelles -->
+      <div class="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200">
+        <h3 class="text-gray-800 text-base sm:text-lg font-semibold mb-3 sm:mb-4">Informations professionnelles</h3>
+        
+        <div class="space-y-3 sm:space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div>
+              <label class="block text-gray-700 text-sm font-medium mb-2">Tarif horaire (€)</label>
+              <input 
+                [(ngModel)]="profile.hourlyRate" 
+                type="number" 
+                step="0.01"
+                placeholder="350"
+                class="w-full p-2.5 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base text-gray-900 placeholder-gray-400">
+            </div>
+            
+            <div>
+              <label class="block text-gray-700 text-sm font-medium mb-2">Années d'expérience</label>
+              <input 
+                [(ngModel)]="profile.experienceYears" 
+                type="number" 
+                min="0"
+                placeholder="5"
+                class="w-full p-2.5 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base text-gray-900 placeholder-gray-400">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div>
+              <label class="block text-gray-700 text-sm font-medium mb-2">Temps de réponse (heures)</label>
+              <select 
+                [(ngModel)]="profile.responseTimeHours" 
+                class="w-full p-2.5 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base text-gray-900">
+                <option value="1">1 heure</option>
+                <option value="2">2 heures</option>
+                <option value="6">6 heures</option>
+                <option value="12">12 heures</option>
+                <option value="24">24 heures</option>
+                <option value="48">48 heures</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-gray-700 text-sm font-medium mb-2">Disponibilité</label>
+              <div class="flex items-center space-x-3 sm:space-x-4 mt-2.5 sm:mt-3">
+                <label class="flex items-center">
+                  <input 
+                    [(ngModel)]="profile.availability" 
+                    type="radio" 
+                    [value]="true" 
+                    name="availability"
+                    class="mr-2 text-blue-600">
+                  <span class="text-green-600 font-medium text-sm sm:text-base">Disponible</span>
+                </label>
+                <label class="flex items-center">
+                  <input 
+                    [(ngModel)]="profile.availability" 
+                    type="radio" 
+                    [value]="false" 
+                    name="availability"
+                    class="mr-2 text-blue-600">
+                  <span class="text-red-600 font-medium text-sm sm:text-base">Occupé</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistiques (lecture seule) -->
+      <div class="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200">
+        <h3 class="text-gray-800 text-base sm:text-lg font-semibold mb-3 sm:mb-4">Statistiques</h3>
+        
+        <div class="grid grid-cols-2 gap-2 sm:gap-4">
+          <div class="bg-white p-3 sm:p-4 rounded-lg text-center border border-gray-100">
+            <div class="text-lg sm:text-2xl font-bold text-blue-600">{{ profile.completedMissions || 0 }}</div>
+            <div class="text-gray-600 text-xs sm:text-sm">Missions complétées</div>
+          </div>
+          
+          <div class="bg-white p-3 sm:p-4 rounded-lg text-center border border-gray-100">
+            <div class="text-lg sm:text-2xl font-bold text-green-600">{{ profile.averageRating || 0 }}/5</div>
+            <div class="text-gray-600 text-xs sm:text-sm">Note moyenne</div>
+          </div>
+          
+          <div class="bg-white p-3 sm:p-4 rounded-lg text-center border border-gray-100">
+            <div class="text-lg sm:text-2xl font-bold text-purple-600">{{ formatEarnings(profile.totalEarnings) }}</div>
+            <div class="text-gray-600 text-xs sm:text-sm">Gains totaux</div>
+          </div>
+          
+          <div class="bg-white p-3 sm:p-4 rounded-lg text-center border border-gray-100">
+            <div class="text-lg sm:text-2xl font-bold text-orange-600">{{ profile.responseTimeHours || 24 }}h</div>
+            <div class="text-gray-600 text-xs sm:text-sm">Temps de réponse</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compétences -->
+      <div class="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200">
+        <div class="flex justify-between items-center mb-3 sm:mb-4">
+          <h3 class="text-gray-800 text-base sm:text-lg font-semibold">Compétences</h3>
+          <button 
+            (click)="addSkill()" 
+            class="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm">
+            + Ajouter
+          </button>
+        </div>
+        
+        <div class="space-y-2 sm:space-y-3 max-h-48 sm:max-h-64 overflow-y-auto">
+          <div *ngFor="let skill of profile.skills; let i = index" class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 bg-white p-3 rounded-lg border border-gray-100">
+            <input 
+              [(ngModel)]="skill.name" 
+              type="text" 
+              placeholder="Nom de la compétence"
+              class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-900 placeholder-gray-400">
+            <div class="flex items-center space-x-2">
+              <select 
+                [(ngModel)]="skill.level" 
+                class="flex-1 sm:flex-none px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-900">
+                <option value="debutant">Débutant</option>
+                <option value="intermediaire">Intermédiaire</option>
+                <option value="avance">Avancé</option>
+                <option value="expert">Expert</option>
+              </select>
+              <button 
+                (click)="removeSkill(i)" 
+                class="text-red-500 hover:text-red-700 active:text-red-800 p-2 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <div *ngIf="profile.skills.length === 0" class="text-gray-500 text-center py-4 sm:py-6 bg-white rounded-lg border border-gray-100 text-sm">
+            Aucune compétence ajoutée. Cliquez sur "Ajouter" pour commencer.
+          </div>
+        </div>
+      </div>
+
+      <!-- Portfolio -->
+      <div class="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200">
+        <div class="flex justify-between items-center mb-3 sm:mb-4">
+          <h3 class="text-gray-800 text-base sm:text-lg font-semibold">Portfolio</h3>
+          <button 
+            (click)="addProject()" 
+            class="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm">
+            + Ajouter
+          </button>
+        </div>
+        
+        <div class="space-y-3 sm:space-y-4 max-h-64 sm:max-h-96 overflow-y-auto">
+          <div *ngFor="let project of profile.portfolio; let i = index" class="border border-gray-200 rounded-lg p-3 sm:p-4 bg-white">
+            <div class="flex justify-between items-start mb-3">
+              <h4 class="font-medium text-gray-800 text-sm sm:text-base">Projet {{ i + 1 }}</h4>
+              <button 
+                (click)="removeProject(i)" 
+                class="text-red-500 hover:text-red-700 active:text-red-800 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            </div>
+            
+            <div class="space-y-3">
+              <input 
+                [(ngModel)]="project.title" 
+                type="text" 
+                placeholder="Titre du projet"
+                class="w-full p-2.5 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base text-gray-900 placeholder-gray-400">
+              
+              <textarea 
+                [(ngModel)]="project.description" 
+                rows="3" 
+                placeholder="Description du projet..."
+                class="w-full p-2.5 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm sm:text-base text-gray-900 placeholder-gray-400"></textarea>
+              
+              <div class="grid grid-cols-1 gap-3">
+                <input 
+                  [(ngModel)]="project.imageUrl" 
+                  type="url" 
+                  placeholder="URL de l'image"
+                  class="w-full p-2.5 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base text-gray-900 placeholder-gray-400">
+                
+                <input 
+                  [(ngModel)]="project.projectUrl" 
+                  type="url" 
+                  placeholder="URL du projet"
+                  class="w-full p-2.5 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base text-gray-900 placeholder-gray-400">
+              </div>
+            </div>
+          </div>
+          
+          <div *ngIf="profile.portfolio.length === 0" class="text-gray-500 text-center py-6 sm:py-8 bg-white rounded-lg border border-gray-100 text-sm">
+            Aucun projet dans votre portfolio. Cliquez sur "Ajouter" pour commencer.
+          </div>
+        </div>
+         <div class="bg-white border-t border-gray-200 p-4 sm:p-6">
+    <div class="max-w-2xl mx-auto">
+      <button 
+        (click)="saveProfile()" 
+        [disabled]="isSaving"
+        class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-gray-400 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-lg sm:rounded-xl transition-colors shadow-lg text-sm sm:text-base">
+        <span *ngIf="!isSaving">Sauvegarder</span>
+        <span *ngIf="isSaving" class="flex items-center justify-center">
+          <svg class="animate-spin -ml-1 mr-3 h-4 sm:h-5 w-4 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Sauvegarde...
+        </span>
+      </button>
+    </div>
+  </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- Bouton de sauvegarde fixe en bas -->
+ 
+</div>

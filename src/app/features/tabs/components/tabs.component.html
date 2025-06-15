@@ -24,18 +24,19 @@
         <ion-icon name="book" class="text-2xl"></ion-icon>
         <span class="text-xs">Messagerie</span>
       </a>
+      <a (click)="navigate('freelance-profile')" class="flex-1 flex flex-col items-center justify-center py-2"
+        [class.opacity-100]="isActive('freelance-profile')" [class.opacity-60]="!isActive('freelance-profile')">
+        <ion-icon name="book" class="text-2xl"></ion-icon>
+        <span class="text-xs">Profil</span>
+      </a>
       <!-- <a (click)="navigate('settings')" class="flex-1 flex flex-col items-center justify-center py-2"
         [class.opacity-100]="isActive('settings')" [class.opacity-60]="!isActive('settings')">
         <ion-icon name="settings" class="text-2xl"></ion-icon>
         <span class="text-xs">Settings</span>
       </a> -->
      
-      <a (click)="openUserProfileModal()" class="flex-1 flex flex-col items-center justify-center py-2"
-        [class.opacity-100]="isActive('profile')" [class.opacity-60]="!isActive('profile')">
-        <ion-icon name="person" class="text-2xl"></ion-icon>
-        <span class="text-xs">Profil</span>
-      </a>
+      
     </div>
   </div>
-  <!-- </ion-content> -->
+  
 </div>
