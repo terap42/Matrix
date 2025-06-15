@@ -1,4 +1,4 @@
-// src/app/services/mission.service.ts - Service pour l'intégration avec votre backend existant
+// src/app/services/mission.service.ts - Service corrigé pour l'intégration avec votre backend
 
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
@@ -27,8 +27,8 @@ export interface Mission {
   skillsRequired: string[];
   createdAt: string;
   updatedAt: string;
-  publishedAt?: string; // ✅ AJOUTÉE
-  estimatedDuration?: string; // ✅ AJOUTÉE
+  publishedAt?: string;
+  estimatedDuration?: string;
   applicationsCount: number;
   isReported: boolean;
   reportReason?: string;
@@ -47,8 +47,8 @@ export interface MissionFilters {
   isReported?: boolean;
   sortBy?: string;
   sortOrder?: string;
-  dateFrom?: string; // ✅ AJOUTÉE
-  dateTo?: string; // ✅ AJOUTÉE
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 export interface MissionListResponse {
@@ -104,7 +104,7 @@ export class MissionService {
     return headers;
   }
 
-  // Récupérer toutes les missions avec filtres et pagination
+  // MÉTHODE CORRIGÉE - Récupérer toutes les missions avec filtres et pagination
   getMissions(filters?: MissionFilters): Observable<MissionListResponse> {
     console.log('📋 Récupération des missions avec filtres:', filters);
     
@@ -143,15 +143,162 @@ export class MissionService {
       }
     }
 
-    return this.http.get<ApiResponse<MissionListResponse>>(`${this.apiUrl}/missions`, { 
+    return this.http.get<any>(`${this.apiUrl}/missions`, { 
       params, 
       headers: this.getHeaders() 
     }).pipe(
+      tap(response => {
+        console.log('🔍 Réponse brute complète:', response);
+        console.log('🔍 Type de réponse:', typeof response);
+        console.log('🔍 Est un array:', Array.isArray(response));
+        if (response && typeof response === 'object') {
+          console.log('🔍 Clés de la réponse:', Object.keys(response));
+        }
+      }),
       map(response => {
-        console.log('✅ Missions récupérées:', response.data);
-        return response.data;
+        console.log('🗂️ Transformation de la réponse...');
+        
+        // Cas 1: Réponse vide ou null
+        if (!response) {
+          console.log('❌ Réponse vide');
+          return {
+            missions: [],
+            pagination: {
+              currentPage: 1,
+              totalItems: 0,
+              totalPages: 0,
+              itemsPerPage: filters?.limit || 10
+            }
+          };
+        }
+
+        // Cas 2: La réponse est directement un tableau de missions
+        if (Array.isArray(response)) {
+          console.log('✅ Réponse est un tableau direct de', response.length, 'missions');
+          return {
+            missions: response,
+            pagination: {
+              currentPage: filters?.page || 1,
+              totalItems: response.length,
+              totalPages: Math.ceil(response.length / (filters?.limit || 10)),
+              itemsPerPage: filters?.limit || 10
+            }
+          };
+        }
+
+        // Cas 3: Réponse avec structure { data: { missions: [...], pagination: {...} } }
+        if (response.data && response.data.missions) {
+          console.log('✅ Réponse avec data.missions de', response.data.missions.length, 'missions');
+          return {
+            missions: response.data.missions,
+            pagination: response.data.pagination || {
+              currentPage: filters?.page || 1,
+              totalItems: response.data.missions.length,
+              totalPages: Math.ceil(response.data.missions.length / (filters?.limit || 10)),
+              itemsPerPage: filters?.limit || 10
+            }
+          };
+        }
+
+        // Cas 4: Réponse avec structure { missions: [...], pagination: {...} }
+        if (response.missions) {
+          console.log('✅ Réponse avec missions de', response.missions.length, 'missions');
+          return {
+            missions: response.missions,
+            pagination: response.pagination || {
+              currentPage: filters?.page || 1,
+              totalItems: response.missions.length,
+              totalPages: Math.ceil(response.missions.length / (filters?.limit || 10)),
+              itemsPerPage: filters?.limit || 10
+            }
+          };
+        }
+
+        // Cas 5: Réponse avec structure { data: [...] } (array dans data)
+        if (response.data && Array.isArray(response.data)) {
+          console.log('✅ Réponse avec data array de', response.data.length, 'missions');
+          return {
+            missions: response.data,
+            pagination: {
+              currentPage: filters?.page || 1,
+              totalItems: response.data.length,
+              totalPages: Math.ceil(response.data.length / (filters?.limit || 10)),
+              itemsPerPage: filters?.limit || 10
+            }
+          };
+        }
+
+        // Cas 6: Structure inconnue - on essaie de deviner
+        console.log('❓ Structure de réponse inconnue, tentative d\'adaptation...');
+        console.log('🔍 Clés disponibles:', Object.keys(response));
+        
+        // Chercher une propriété qui pourrait contenir les missions
+        const possibleKeys = ['missions', 'data', 'items', 'results'];
+        for (const key of possibleKeys) {
+          if (response[key] && Array.isArray(response[key])) {
+            console.log(`✅ Trouvé missions dans la propriété "${key}"`);
+            return {
+              missions: response[key],
+              pagination: response.pagination || {
+                currentPage: filters?.page || 1,
+                totalItems: response[key].length,
+                totalPages: Math.ceil(response[key].length / (filters?.limit || 10)),
+                itemsPerPage: filters?.limit || 10
+              }
+            };
+          }
+        }
+
+        // Dernier recours - retourner une structure vide
+        console.log('❌ Impossible de trouver les missions, retour structure vide');
+        return {
+          missions: [],
+          pagination: {
+            currentPage: 1,
+            totalItems: 0,
+            totalPages: 0,
+            itemsPerPage: filters?.limit || 10
+          }
+        };
+      }),
+      tap(finalResponse => {
+        console.log('✅ Missions récupérées (final):', finalResponse.missions.length, 'missions');
+        console.log('📊 Pagination:', finalResponse.pagination);
       }),
       catchError(this.handleError.bind(this))
+    );
+  }
+
+  // MÉTHODE DE DEBUG - Pour identifier la structure exacte
+  debugGetMissions(): Observable<any> {
+    console.log('🔍 DEBUG - Test direct de l\'API sans transformation');
+    
+    return this.http.get<any>(`${this.apiUrl}/missions`, {
+      headers: this.getHeaders()
+    }).pipe(
+      tap(response => {
+        console.log('🔍 DEBUG - Réponse brute complète:', response);
+        console.log('🔍 DEBUG - Type:', typeof response);
+        console.log('🔍 DEBUG - Est array:', Array.isArray(response));
+        console.log('🔍 DEBUG - JSON stringify:', JSON.stringify(response, null, 2));
+        
+        if (response && typeof response === 'object') {
+          console.log('🔍 DEBUG - Clés:', Object.keys(response));
+          
+          // Tester chaque propriété
+          Object.keys(response).forEach(key => {
+            console.log(`🔍 DEBUG - ${key}:`, response[key]);
+            console.log(`🔍 DEBUG - ${key} type:`, typeof response[key]);
+            if (Array.isArray(response[key])) {
+              console.log(`🔍 DEBUG - ${key} length:`, response[key].length);
+            }
+          });
+        }
+      }),
+      catchError(error => {
+        console.error('🔍 DEBUG - Erreur:', error);
+        return throwError(() => error);
+      })
     );
   }
 
@@ -159,12 +306,18 @@ export class MissionService {
   getMissionById(id: string): Observable<Mission> {
     console.log('🔍 Récupération mission ID:', id);
     
-    return this.http.get<ApiResponse<Mission>>(`${this.apiUrl}/missions/${id}`, {
+    return this.http.get<any>(`${this.apiUrl}/missions/${id}`, {
       headers: this.getHeaders()
     }).pipe(
       map(response => {
-        console.log('✅ Mission récupérée:', response.data);
-        return response.data;
+        // Adaptation selon la structure de réponse
+        if (response.data) {
+          console.log('✅ Mission récupérée:', response.data);
+          return response.data;
+        } else {
+          console.log('✅ Mission récupérée:', response);
+          return response;
+        }
       }),
       catchError(this.handleError.bind(this))
     );
@@ -174,13 +327,13 @@ export class MissionService {
   deleteMission(id: string): Observable<void> {
     console.log('🗑️ Suppression mission ID:', id);
     
-    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/missions/${id}`, {
+    return this.http.delete<any>(`${this.apiUrl}/missions/${id}`, {
       headers: this.getHeaders()
     }).pipe(
       map(response => {
         console.log('✅ Mission supprimée');
         this.notifyMissionsUpdated();
-        return response.data;
+        return response.data || response;
       }),
       catchError(this.handleError.bind(this))
     );
@@ -190,14 +343,14 @@ export class MissionService {
   updateMissionStatus(id: string, status: string): Observable<void> {
     console.log('🔄 Changement statut mission ID:', id, 'vers', status);
     
-    return this.http.patch<ApiResponse<void>>(`${this.apiUrl}/missions/${id}/status`, 
+    return this.http.patch<any>(`${this.apiUrl}/missions/${id}/status`, 
       { status }, 
       { headers: this.getHeaders() }
     ).pipe(
       map(response => {
         console.log('✅ Statut mission mis à jour');
         this.notifyMissionsUpdated();
-        return response.data;
+        return response.data || response;
       }),
       catchError(this.handleError.bind(this))
     );
@@ -207,12 +360,13 @@ export class MissionService {
   getMissionStats(): Observable<MissionStats> {
     console.log('📊 Récupération statistiques missions');
     
-    return this.http.get<ApiResponse<MissionStats>>(`${this.apiUrl}/missions/stats/overview`, {
+    return this.http.get<any>(`${this.apiUrl}/missions/stats/overview`, {
       headers: this.getHeaders()
     }).pipe(
       map(response => {
-        console.log('✅ Statistiques récupérées:', response.data);
-        return response.data;
+        const stats = response.data || response;
+        console.log('✅ Statistiques récupérées:', stats);
+        return stats;
       }),
       catchError(this.handleError.bind(this))
     );
@@ -222,12 +376,13 @@ export class MissionService {
   getSkills(): Observable<any[]> {
     console.log('🛠️ Récupération compétences');
     
-    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/skills`, {
+    return this.http.get<any>(`${this.apiUrl}/skills`, {
       headers: this.getHeaders()
     }).pipe(
       map(response => {
-        console.log('✅ Compétences récupérées:', response.data.length);
-        return response.data;
+        const skills = response.data || response;
+        console.log('✅ Compétences récupérées:', Array.isArray(skills) ? skills.length : 'Structure inconnue');
+        return Array.isArray(skills) ? skills : [];
       }),
       catchError(this.handleError.bind(this))
     );
@@ -237,12 +392,13 @@ export class MissionService {
   getSkillCategories(): Observable<string[]> {
     console.log('📂 Récupération catégories');
     
-    return this.http.get<ApiResponse<string[]>>(`${this.apiUrl}/skills/categories`, {
+    return this.http.get<any>(`${this.apiUrl}/skills/categories`, {
       headers: this.getHeaders()
     }).pipe(
       map(response => {
-        console.log('✅ Catégories récupérées:', response.data);
-        return response.data;
+        const categories = response.data || response;
+        console.log('✅ Catégories récupérées:', categories);
+        return Array.isArray(categories) ? categories : [];
       }),
       catchError(this.handleError.bind(this))
     );

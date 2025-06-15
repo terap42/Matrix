@@ -1,4 +1,4 @@
-// src/app/admin/mission-management/mission-management.page.ts - Version dynamique intégrée
+// src/app/admin/mission-management/mission-management.page.ts - Version corrigée sans erreurs
 
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ModalController, AlertController, ToastController, LoadingController } from '@ionic/angular';
@@ -20,7 +20,7 @@ import {
 })
 export class MissionManagementPage implements OnInit, OnDestroy {
   
-  // Données des missions
+  // Données des missions - Initialisées pour éviter les warnings
   missions: Mission[] = [];
   filteredMissions: Mission[] = [];
   stats: MissionStats | null = null;
@@ -147,7 +147,7 @@ export class MissionManagementPage implements OnInit, OnDestroy {
       });
   }
 
-  // Charger les missions depuis l'API
+  // MÉTHODE CORRIGÉE - Charger les missions depuis l'API
   loadMissions() {
     if (this.loading) return;
     
@@ -166,23 +166,71 @@ export class MissionManagementPage implements OnInit, OnDestroy {
         finalize(() => this.loading = false)
       )
       .subscribe({
-        next: (response: MissionListResponse) => {
-          this.missions = response.missions;
-          this.filteredMissions = response.missions;
-          this.totalItems = response.pagination.totalItems;
-          this.totalPages = response.pagination.totalPages;
-          this.currentPage = response.pagination.currentPage;
+        next: (response: any) => {
+          console.log('📦 Réponse complète reçue:', response);
           
-          console.log(`✅ ${response.missions.length} missions chargées`);
+          // VÉRIFICATION ET CORRECTION DE LA STRUCTURE
+          if (!response) {
+            console.error('❌ Réponse vide');
+            this.missions = [];
+            this.filteredMissions = [];
+            this.totalItems = 0;
+            this.totalPages = 0;
+            return;
+          }
+
+          // Cas 1: La réponse est directement un tableau de missions
+          if (Array.isArray(response)) {
+            console.log('📋 Réponse = tableau direct');
+            this.missions = response;
+            this.filteredMissions = response;
+            this.totalItems = response.length;
+            this.totalPages = Math.ceil(response.length / this.itemsPerPage);
+            this.currentPage = 1;
+          }
+          // Cas 2: La réponse a une structure avec missions
+          else if (response.missions) {
+            console.log('📋 Réponse = objet avec missions');
+            this.missions = response.missions;
+            this.filteredMissions = response.missions;
+            this.totalItems = response.pagination?.totalItems || response.missions.length;
+            this.totalPages = response.pagination?.totalPages || Math.ceil(this.totalItems / this.itemsPerPage);
+            this.currentPage = response.pagination?.currentPage || 1;
+          }
+          // Cas 3: La réponse a une structure avec data
+          else if (response.data) {
+            console.log('📋 Réponse = objet avec data');
+            this.missions = Array.isArray(response.data) ? response.data : response.data.missions || [];
+            this.filteredMissions = this.missions;
+            this.totalItems = response.data.total || response.data.pagination?.totalItems || this.missions.length;
+            this.totalPages = response.data.pagination?.totalPages || Math.ceil(this.totalItems / this.itemsPerPage);
+            this.currentPage = response.data.pagination?.currentPage || 1;
+          }
+          // Cas 4: Structure inconnue
+          else {
+            console.error('❌ Structure de réponse inconnue:', response);
+            this.missions = [];
+            this.filteredMissions = [];
+            this.totalItems = 0;
+            this.totalPages = 0;
+          }
+          
+          console.log(`✅ ${this.missions.length} missions chargées, Total: ${this.totalItems}`);
         },
         error: (error) => {
           console.error('❌ Erreur chargement missions:', error);
           this.showErrorToast('Erreur lors du chargement des missions');
+          
+          // Réinitialiser en cas d'erreur
+          this.missions = [];
+          this.filteredMissions = [];
+          this.totalItems = 0;
+          this.totalPages = 0;
         }
       });
   }
 
-  // Version Promise pour le chargement initial
+  // MÉTHODE CORRIGÉE - Version Promise pour le chargement initial
   private loadMissionsPromise(): Promise<void> {
     return new Promise((resolve, reject) => {
       const requestFilters: MissionFilters = {
@@ -194,16 +242,51 @@ export class MissionManagementPage implements OnInit, OnDestroy {
       this.missionService.getMissions(requestFilters)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: (response) => {
-            this.missions = response.missions;
-            this.filteredMissions = response.missions;
-            this.totalItems = response.pagination.totalItems;
-            this.totalPages = response.pagination.totalPages;
-            this.currentPage = response.pagination.currentPage;
+          next: (response: any) => {
+            console.log('📦 Promise - Réponse reçue:', response);
+            
+            if (!response) {
+              this.missions = [];
+              this.filteredMissions = [];
+              this.totalItems = 0;
+              this.totalPages = 0;
+              resolve();
+              return;
+            }
+
+            if (Array.isArray(response)) {
+              this.missions = response;
+              this.filteredMissions = response;
+              this.totalItems = response.length;
+              this.totalPages = Math.ceil(response.length / this.itemsPerPage);
+              this.currentPage = 1;
+            } else if (response.missions) {
+              this.missions = response.missions;
+              this.filteredMissions = response.missions;
+              this.totalItems = response.pagination?.totalItems || response.missions.length;
+              this.totalPages = response.pagination?.totalPages || Math.ceil(this.totalItems / this.itemsPerPage);
+              this.currentPage = response.pagination?.currentPage || 1;
+            } else if (response.data) {
+              this.missions = Array.isArray(response.data) ? response.data : response.data.missions || [];
+              this.filteredMissions = this.missions;
+              this.totalItems = response.data.total || response.data.pagination?.totalItems || this.missions.length;
+              this.totalPages = response.data.pagination?.totalPages || Math.ceil(this.totalItems / this.itemsPerPage);
+              this.currentPage = response.data.pagination?.currentPage || 1;
+            } else {
+              this.missions = [];
+              this.filteredMissions = [];
+              this.totalItems = 0;
+              this.totalPages = 0;
+            }
+            
             resolve();
           },
           error: (error) => {
-            console.error('❌ Erreur chargement missions:', error);
+            console.error('❌ Promise - Erreur chargement missions:', error);
+            this.missions = [];
+            this.filteredMissions = [];
+            this.totalItems = 0;
+            this.totalPages = 0;
             reject(error);
           }
         });
@@ -238,6 +321,113 @@ export class MissionManagementPage implements OnInit, OnDestroy {
           error: reject
         });
     });
+  }
+
+  // MÉTHODE DE DEBUG CORRIGÉE - Tester directement le service
+  debugMissionService() {
+    console.log('🔍 Test direct du service...');
+    
+    this.missionService.getMissions({
+      page: 1,
+      limit: 10,
+      sortBy: 'created_at',
+      sortOrder: 'DESC'
+    }).subscribe({
+      next: (response) => {
+        console.log('🔍 Debug - Type de response:', typeof response);
+        console.log('🔍 Debug - Response est array:', Array.isArray(response));
+        console.log('🔍 Debug - Response complète:', response);
+        console.log('🔍 Debug - Clés de response:', response ? Object.keys(response) : 'undefined');
+        
+        if (response && typeof response === 'object' && !Array.isArray(response)) {
+          // Correction du typage pour éviter l'erreur TS7053
+          const responseObj = response as { [key: string]: any };
+          Object.keys(responseObj).forEach(key => {
+            console.log(`🔍 Debug - ${key}:`, responseObj[key]);
+          });
+        }
+      },
+      error: (error) => {
+        console.error('🔍 Debug - Erreur:', error);
+      }
+    });
+  }
+
+  // MÉTHODE DE TEST CORRIGÉE - Charger des missions de test avec types corrects
+  loadTestMissions() {
+    console.log('🧪 Chargement de missions de test...');
+    
+    const testMissions: Mission[] = [
+      {
+        id: 'test-1',
+        title: 'Mission de test 1',
+        description: 'Description de test pour la première mission',
+        category: 'Développement Web',
+        clientId: 'client-test-1',
+        clientName: 'Client Test',
+        clientEmail: 'client.test@example.com',
+        budget: 1000,
+        currency: 'EUR',
+        status: 'open',
+        priority: 'medium',
+        applicationsCount: 5,
+        skillsRequired: ['JavaScript', 'Angular', 'TypeScript'],
+        deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Dans 7 jours
+        isReported: false,
+        reportReason: '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'test-2',
+        title: 'Mission de test 2',
+        description: 'Autre description de test pour la deuxième mission',
+        category: 'Mobile Development',
+        clientId: 'client-test-2',
+        clientName: 'Autre Client',
+        clientEmail: 'autre.client@example.com',
+        budget: 2000,
+        currency: 'EUR',
+        status: 'in_progress',
+        priority: 'high',
+        applicationsCount: 8,
+        skillsRequired: ['TypeScript', 'Ionic', 'Angular'],
+        deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // Dans 14 jours
+        isReported: true,
+        reportReason: 'Contenu inapproprié',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'test-3',
+        title: 'Mission de test 3',
+        description: 'Troisième mission de test avec un budget plus élevé',
+        category: 'Full Stack',
+        clientId: 'client-test-3',
+        clientName: 'Super Client',
+        clientEmail: 'super.client@example.com',
+        budget: 5000,
+        currency: 'EUR',
+        status: 'completed',
+        priority: 'low',
+        applicationsCount: 12,
+        skillsRequired: ['React', 'Node.js', 'MongoDB', 'AWS'],
+        deadline: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // Il y a 7 jours
+        isReported: false,
+        reportReason: '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ];
+
+    this.missions = testMissions;
+    this.filteredMissions = testMissions;
+    this.totalItems = testMissions.length;
+    this.totalPages = 1;
+    this.currentPage = 1;
+    
+    console.log('✅ Missions de test chargées');
+    this.showSuccessToast('Missions de test chargées avec succès');
   }
 
   // Appliquer les filtres
@@ -434,6 +624,11 @@ export class MissionManagementPage implements OnInit, OnDestroy {
 
   getPaginatedMissions(): Mission[] {
     return this.filteredMissions;
+  }
+
+  // Méthode de tracking pour optimiser le rendu
+  trackMissionById(index: number, mission: Mission): string {
+    return mission?.id || index.toString();
   }
 
   get endIndex(): number {

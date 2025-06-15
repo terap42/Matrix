@@ -41,12 +41,13 @@ export class MissionsPage implements OnInit, OnDestroy {
 
   private subscriptions: Subscription = new Subscription();
 
+  // ✅ CORRECTION : Harmoniser les valeurs avec le formulaire HTML
   categories = [
     { value: 'all', label: 'Toutes', count: 0 },
-    { value: 'Design', label: 'Design', count: 0 },
-    { value: 'Développement', label: 'Développement', count: 0 },
-    { value: 'Marketing', label: 'Marketing', count: 0 },
-    { value: 'Rédaction', label: 'Rédaction', count: 0 }
+    { value: 'design', label: 'Design', count: 0 },
+    { value: 'development', label: 'Développement', count: 0 },
+    { value: 'marketing', label: 'Marketing', count: 0 },
+    { value: 'writing', label: 'Rédaction', count: 0 }
   ];
 
   budgetRanges = [
@@ -68,7 +69,7 @@ export class MissionsPage implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private missionService: MissionService,
-    private authService: AuthService // Injection du service d'authentification
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -81,6 +82,9 @@ export class MissionsPage implements OnInit, OnDestroy {
         this.missions = missions;
         this.updateCategoryCounts();
         this.applyFilters();
+        
+        // ✅ Debug temporaire
+        setTimeout(() => this.debugCategories(), 500);
       })
     );
   }
@@ -91,7 +95,6 @@ export class MissionsPage implements OnInit, OnDestroy {
 
   // Initialiser les données d'authentification
   private initializeAuth() {
-    // S'abonner au statut de l'utilisateur connecté
     this.subscriptions.add(
       this.authService.currentUser$.subscribe(user => {
         this.currentUser = user;
@@ -100,7 +103,6 @@ export class MissionsPage implements OnInit, OnDestroy {
       })
     );
 
-    // Vérifier si l'utilisateur est déjà connecté
     this.isLoggedIn = this.authService.isLoggedIn();
     this.currentUser = this.authService.getCurrentUserValue();
   }
@@ -113,14 +115,13 @@ export class MissionsPage implements OnInit, OnDestroy {
       this.missionService.getMissions().subscribe({
         next: (missions) => {
           console.log('✅ Missions chargées:', missions.length);
+          console.log('📊 Catégories trouvées:', missions.map(m => ({ title: m.title, category: m.category })));
           this.loading = false;
         },
         error: (error) => {
           console.error('❌ Erreur chargement missions:', error);
           this.error = 'Erreur lors du chargement des missions';
           this.loading = false;
-          
-          // Fallback sur les données locales si erreur réseau
           this.loadFallbackMissions();
         }
       })
@@ -134,7 +135,7 @@ export class MissionsPage implements OnInit, OnDestroy {
         id: 'fallback-1',
         title: 'Mission de test (mode hors ligne)',
         description: 'Cette mission s\'affiche car le serveur n\'est pas accessible.',
-        category: 'Développement',
+        category: 'development', // ✅ Correction : utiliser la valeur en minuscules
         budget: { min: 500, max: 1000 },
         deadline: '2024-07-15',
         clientName: 'Client Test',
@@ -150,14 +151,23 @@ export class MissionsPage implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
+  // ✅ CORRECTION : Améliorer updateCategoryCounts avec logs
   updateCategoryCounts() {
+    console.log('🔄 Mise à jour des comptes de catégories...');
+    
     this.categories.forEach(cat => {
       if (cat.value === 'all') {
         cat.count = this.missions.length;
       } else {
-        cat.count = this.missions.filter(m => m.category === cat.value).length;
+        const matchingMissions = this.missions.filter(m => m.category === cat.value);
+        cat.count = matchingMissions.length;
+        
+        console.log(`📊 Catégorie "${cat.value}": ${cat.count} missions`, 
+          matchingMissions.map(m => m.title));
       }
     });
+    
+    console.log('✅ Comptes mis à jour:', this.categories.map(c => ({ label: c.label, count: c.count })));
   }
 
   applyFilters() {
@@ -172,6 +182,12 @@ export class MissionsPage implements OnInit, OnDestroy {
       const matchesDeadline = this.matchesDeadlineFilter(mission);
 
       return matchesCategory && matchesSearch && matchesBudget && matchesDeadline;
+    });
+    
+    console.log('🔍 Filtrage:', {
+      selectedCategory: this.selectedCategory,
+      totalMissions: this.missions.length,
+      filteredMissions: this.filteredMissions.length
     });
   }
 
@@ -203,6 +219,7 @@ export class MissionsPage implements OnInit, OnDestroy {
   }
 
   onCategoryChange(category: string) {
+    console.log('🏷️ Changement catégorie:', category);
     this.selectedCategory = category;
     this.applyFilters();
   }
@@ -231,9 +248,31 @@ export class MissionsPage implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
+  // ✅ NOUVEAU : Méthode de debug pour catégories
+  debugCategories() {
+    console.log('🐛 DEBUG CATÉGORIES:');
+    console.log('📊 Missions totales:', this.missions.length);
+    console.log('📊 Missions filtrées:', this.filteredMissions.length);
+    console.log('🏷️ Catégorie sélectionnée:', this.selectedCategory);
+    
+    const categoryBreakdown = this.missions.reduce((acc, mission) => {
+      const cat = mission.category || 'undefined';
+      acc[cat] = (acc[cat] || 0) + 1;
+      return acc;
+    }, {} as any);
+    
+    console.log('📈 Répartition réelle des catégories:', categoryBreakdown);
+    
+    this.categories.forEach(cat => {
+      const realCount = this.missions.filter(m => 
+        cat.value === 'all' ? true : m.category === cat.value
+      ).length;
+      console.log(`🏷️ ${cat.label}: affiché=${cat.count}, réel=${realCount}`);
+    });
+  }
+
   // Méthodes pour le modal d'ajout de mission
   openAddMissionModal() {
-    // Vérifier si l'utilisateur est connecté et est un client
     if (!this.isLoggedIn) {
       this.error = 'Vous devez être connecté pour publier une mission';
       this.router.navigate(['/auth/login']);
@@ -323,8 +362,6 @@ export class MissionsPage implements OnInit, OnDestroy {
           console.log('✅ Mission créée avec succès:', newMission);
           this.submitting = false;
           this.closeAddMissionModal();
-          
-          // Afficher un message de succès
           this.showSuccessMessage('Mission publiée avec succès !');
         },
         error: (error) => {
@@ -337,7 +374,6 @@ export class MissionsPage implements OnInit, OnDestroy {
   }
 
   showSuccessMessage(message: string) {
-    // Implémentation simple - vous pouvez utiliser un toast service plus tard
     alert(message);
   }
 
@@ -346,7 +382,6 @@ export class MissionsPage implements OnInit, OnDestroy {
   }
 
   applyToMission(mission: Mission) {
-    // Vérifier si l'utilisateur est connecté et est un freelance
     if (!this.isLoggedIn) {
       this.error = 'Vous devez être connecté pour postuler à une mission';
       this.router.navigate(['/auth/login']);
@@ -395,7 +430,6 @@ export class MissionsPage implements OnInit, OnDestroy {
     }
   }
 
-  // Méthodes pour vérifier les permissions
   canCreateMission(): boolean {
     return this.isLoggedIn && this.authService.isClient();
   }
@@ -408,7 +442,6 @@ export class MissionsPage implements OnInit, OnDestroy {
     return this.isLoggedIn;
   }
 
-  // Méthodes existantes conservées
   formatBudget(budget: { min: number; max: number }): string {
     return `€${budget.min}-${budget.max}`;
   }
@@ -438,8 +471,14 @@ export class MissionsPage implements OnInit, OnDestroy {
     }
   }
 
+  // ✅ CORRECTION : Adapter aux nouvelles valeurs de catégories
   getCategoryIcon(category: string): string {
     const icons: { [key: string]: string } = {
+      'design': '🎨',
+      'development': '💻',
+      'marketing': '📈',
+      'writing': '✍️',
+      // Rétrocompatibilité avec les anciennes valeurs
       'Design': '🎨',
       'Développement': '💻',
       'Marketing': '📈',
@@ -458,7 +497,6 @@ export class MissionsPage implements OnInit, OnDestroy {
     return 'normal';
   }
 
-  // Méthodes utilitaires pour le debug
   refreshMissions() {
     this.loadMissions();
   }
