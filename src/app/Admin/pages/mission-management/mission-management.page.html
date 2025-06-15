@@ -157,7 +157,7 @@
                         <strong>Client:</strong> {{ mission.clientName || 'N/A' }}
                       </span>
                       <span class="mr-4">
-                        <strong>Budget:</strong> {{ mission.budget || 0 }} {{ mission.currency || 'EUR' }}
+                       <strong>Budget:</strong> {{ formatBudgetForDisplay(mission.budget, mission.currency) }}
                       </span>
                       <span class="mr-4">
                         <strong>Candidatures:</strong> {{ mission.applicationsCount || 0 }}

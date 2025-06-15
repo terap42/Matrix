@@ -1,4 +1,4 @@
-// src/app/services/mission.service.ts - Service corrigé pour l'intégration avec votre backend
+// src/app/services/mission.service.ts - Service corrigé sans erreurs de syntaxe
 
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
@@ -467,7 +467,9 @@ export class MissionService {
       'assigned': 'Assignée', 
       'in_progress': 'En cours',
       'completed': 'Terminée',
-      'cancelled': 'Annulée'
+      'cancelled': 'Annulée',
+      'draft': 'Brouillon',
+      'reported': 'Signalée'
     };
     return statusLabels[status] || status;
   }
@@ -478,7 +480,9 @@ export class MissionService {
       'assigned': 'bg-yellow-100 text-yellow-800',
       'in_progress': 'bg-yellow-100 text-yellow-800', 
       'completed': 'bg-green-100 text-green-800',
-      'cancelled': 'bg-red-100 text-red-800'
+      'cancelled': 'bg-red-100 text-red-800',
+      'draft': 'bg-gray-100 text-gray-800',
+      'reported': 'bg-red-100 text-red-800'
     };
     return statusColors[status] || 'bg-gray-100 text-gray-800';
   }

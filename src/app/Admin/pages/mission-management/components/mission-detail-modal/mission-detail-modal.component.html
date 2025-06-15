@@ -1,3 +1,5 @@
+<!-- src/app/admin/mission-management/components/mission-detail-modal/mission-detail-modal.component.html -->
+
 <div class="flex flex-col h-full max-h-screen">
   <!-- Header du modal -->
   <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-white">
@@ -59,7 +61,7 @@
       [class.border-transparent]="activeTab !== 'applications'"
       [class.text-gray-500]="activeTab !== 'applications'"
       class="py-3 px-6 border-b-2 font-medium text-sm hover:text-gray-700 hover:border-gray-300 transition-colors duration-150">
-      Candidatures ({{ mission.applicationsCount }})
+      Candidatures ({{ mission.applicationsCount || 0 }})
     </button>
     <button 
       (click)="setActiveTab('history')"
@@ -89,7 +91,7 @@
             <div class="ml-3">
               <h3 class="text-sm font-medium text-red-800">Mission signalée</h3>
               <div class="mt-2 text-sm text-red-700">
-                <p><strong>Raison:</strong> {{ mission.reportReason }}</p>
+                <p><strong>Raison:</strong> {{ mission.reportReason || 'Raison non spécifiée' }}</p>
                 <button 
                   (click)="resolveReport()"
                   class="mt-2 inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
@@ -112,17 +114,17 @@
                 type="text" 
                 [(ngModel)]="editedMission.title"
                 class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-              <p *ngIf="!editMode" class="text-sm text-gray-900">{{ mission.title }}</p>
+              <p *ngIf="!editMode" class="text-sm text-gray-900">{{ mission.title || 'Non défini' }}</p>
             </div>
             <!-- Client -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Client</label>
-              <p class="text-sm text-gray-900">{{ mission.clientName }}</p>
+              <p class="text-sm text-gray-900">{{ mission.clientName || 'Non spécifié' }}</p>
             </div>
             <!-- Email du client -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Email du client</label>
-              <p class="text-sm text-gray-900">{{ mission.clientEmail }}</p>
+              <p class="text-sm text-gray-900">{{ mission.clientEmail || 'Non spécifié' }}</p>
             </div>
             <!-- Budget -->
             <div>
@@ -132,7 +134,7 @@
                 type="number" 
                 [(ngModel)]="editedMission.budget"
                 class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-              <p *ngIf="!editMode" class="text-sm text-gray-900">{{ mission.budget | currency:'EUR':'symbol':'1.0-0' }}</p>
+              <p *ngIf="!editMode" class="text-sm text-gray-900">{{ formatPrice(mission.budget || 0, mission.currency) }}</p>
             </div>
             <!-- Durée estimée -->
             <div>
@@ -141,8 +143,9 @@
                 *ngIf="editMode" 
                 type="text" 
                 [(ngModel)]="editedMission.estimatedDuration"
+                placeholder="Ex: 2 mois"
                 class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-              <p *ngIf="!editMode" class="text-sm text-gray-900">{{ mission.estimatedDuration }}</p>
+              <p *ngIf="!editMode" class="text-sm text-gray-900">{{ mission.estimatedDuration || 'Non définie' }}</p>
             </div>
             <!-- Statut -->
             <div>
@@ -164,12 +167,12 @@
             <!-- Date de création -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Date de création</label>
-              <p class="text-sm text-gray-900">{{ mission.createdAt | date:'dd/MM/yyyy à HH:mm' }}</p>
+              <p class="text-sm text-gray-900">{{ formatDate(mission.createdAt) }}</p>
             </div>
             <!-- Date de publication -->
             <div *ngIf="mission.publishedAt">
               <label class="block text-sm font-medium text-gray-700 mb-1">Date de publication</label>
-              <p class="text-sm text-gray-900">{{ mission.publishedAt | date:'dd/MM/yyyy à HH:mm' }}</p>
+              <p class="text-sm text-gray-900">{{ formatDate(mission.publishedAt) }}</p>
             </div>
             <!-- Date limite -->
             <div>
@@ -179,7 +182,7 @@
                 type="date" 
                 [(ngModel)]="editedMission.deadline"
                 class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-              <p *ngIf="!editMode" class="text-sm text-gray-900">{{ mission.deadline | date:'dd/MM/yyyy' }}</p>
+              <p *ngIf="!editMode" class="text-sm text-gray-900">{{ mission.deadline ? (mission.deadline | date:'dd/MM/yyyy') : 'Non définie' }}</p>
             </div>
             <!-- Catégorie -->
             <div>
@@ -189,15 +192,38 @@
                 type="text" 
                 [(ngModel)]="editedMission.category"
                 class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-              <p *ngIf="!editMode" class="text-sm text-gray-900">{{ mission.category }}</p>
+              <p *ngIf="!editMode" class="text-sm text-gray-900">{{ mission.category || 'Non définie' }}</p>
+            </div>
+            <!-- Priorité -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Priorité</label>
+              <select 
+                *ngIf="editMode" 
+                [(ngModel)]="editedMission.priority"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <option value="low">Basse</option>
+                <option value="medium">Moyenne</option>
+                <option value="high">Haute</option>
+              </select>
+              <p *ngIf="!editMode" class="text-sm text-gray-900">
+                <span [class]="'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ' + 
+                  (mission.priority === 'high' ? 'bg-red-100 text-red-800' : 
+                   mission.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800')">
+                  {{ mission.priority === 'high' ? 'Haute' : mission.priority === 'medium' ? 'Moyenne' : 'Basse' }}
+                </span>
+              </p>
             </div>
             <!-- Compétences -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Compétences requises</label>
               <div *ngIf="!editMode" class="flex flex-wrap gap-2">
-                <span *ngFor="let skill of mission.skillsRequired" 
+                <span *ngFor="let skill of (mission.skillsRequired || [])" 
                       class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   {{ skill }}
+                </span>
+                <span *ngIf="!mission.skillsRequired || mission.skillsRequired.length === 0"
+                      class="text-sm text-gray-500 italic">
+                  Aucune compétence spécifiée
                 </span>
               </div>
               <textarea 
@@ -210,7 +236,7 @@
             <!-- Nombre de candidatures -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Candidatures reçues</label>
-              <p class="text-sm text-gray-900">{{ mission.applicationsCount }} candidature(s)</p>
+              <p class="text-sm text-gray-900">{{ mission.applicationsCount || 0 }} candidature(s)</p>
             </div>
           </div>
         </div>
@@ -222,7 +248,9 @@
             [(ngModel)]="editedMission.description"
             class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             rows="6"></textarea>
-          <div *ngIf="!editMode" class="text-sm text-gray-900 whitespace-pre-wrap">{{ mission.description }}</div>
+          <div *ngIf="!editMode" class="text-sm text-gray-900 whitespace-pre-wrap p-4 bg-gray-50 rounded-md">
+            {{ mission.description || 'Aucune description fournie' }}
+          </div>
         </div>
         <!-- Actions en mode édition -->
         <div *ngIf="editMode" class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
@@ -261,12 +289,16 @@
                         class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                     En attente
                   </span>
+                  <span *ngIf="application.status === 'rejected'" 
+                        class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    Refusée
+                  </span>
                 </div>
                 <p class="text-sm text-gray-600 mt-1">{{ application.freelancerEmail }}</p>
                 <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                   <div>
                     <span class="font-medium text-gray-700">Prix proposé:</span>
-                    <p class="text-gray-900">{{ application.proposedPrice | currency:'EUR':'symbol':'1.0-0' }}</p>
+                    <p class="text-gray-900">{{ formatPrice(application.proposedPrice) }}</p>
                   </div>
                   <div>
                     <span class="font-medium text-gray-700">Durée estimée:</span>
@@ -283,10 +315,14 @@
                 </div>
               </div>
               <div *ngIf="application.status === 'pending'" class="ml-4 flex flex-col space-y-2">
-                <button class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <button 
+                  (click)="acceptApplication(application)"
+                  class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                   Accepter
                 </button>
-                <button class="inline-flex items-center px-3 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <button 
+                  (click)="rejectApplication(application)"
+                  class="inline-flex items-center px-3 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                   Refuser
                 </button>
               </div>
@@ -325,7 +361,7 @@
                       <p class="text-sm text-gray-500">Mission créée par <span class="font-medium text-gray-900">{{ mission.clientName }}</span></p>
                     </div>
                     <div class="text-right text-sm whitespace-nowrap text-gray-500">
-                      {{ mission.createdAt | date:'dd/MM/yyyy à HH:mm' }}
+                      {{ formatDate(mission.createdAt) }}
                     </div>
                   </div>
                 </div>
@@ -347,7 +383,7 @@
                       <p class="text-sm text-gray-500">Mission publiée</p>
                     </div>
                     <div class="text-right text-sm whitespace-nowrap text-gray-500">
-                      {{ mission.publishedAt | date:'dd/MM/yyyy à HH:mm' }}
+                      {{ formatDate(mission.publishedAt) }}
                     </div>
                   </div>
                 </div>
@@ -368,7 +404,7 @@
                       <p class="text-sm text-gray-500">Dernière modification</p>
                     </div>
                     <div class="text-right text-sm whitespace-nowrap text-gray-500">
-                      {{ mission.updatedAt | date:'dd/MM/yyyy à HH:mm' }}
+                      {{ formatDate(mission.updatedAt) }}
                     </div>
                   </div>
                 </div>

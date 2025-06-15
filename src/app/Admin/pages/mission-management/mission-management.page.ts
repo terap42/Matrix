@@ -1,4 +1,4 @@
-// src/app/admin/mission-management/mission-management.page.ts - Version corrigée sans erreurs
+// src/app/admin/mission-management/mission-management.page.ts - Version finale corrigée
 
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ModalController, AlertController, ToastController, LoadingController } from '@ionic/angular';
@@ -353,6 +353,89 @@ export class MissionManagementPage implements OnInit, OnDestroy {
     });
   }
 
+  // Debug pour analyser le budget
+  debugMissionBudget(mission: Mission) {
+    console.log('🔍 === DEBUG MISSION BUDGET ===');
+    console.log('🔍 Mission complète:', mission);
+    console.log('🔍 Budget value:', mission.budget);
+    console.log('🔍 Budget type:', typeof mission.budget);
+    console.log('🔍 Budget JSON:', JSON.stringify(mission.budget));
+    console.log('🔍 Currency:', mission.currency);
+    console.log('🔍 Currency type:', typeof mission.currency);
+    console.log('🔍 === FIN DEBUG ===');
+  }
+
+  // Méthode utilitaire pour formater le budget
+  private formatBudget(budget: any, currency: string = 'EUR'): string {
+    // Debug du budget
+    console.log('💰 Formatage budget:', { budget, currency, type: typeof budget });
+    
+    // Si budget est null ou undefined
+    if (budget === null || budget === undefined) {
+      return 'Budget non défini';
+    }
+    
+    // Si budget est déjà un nombre
+    if (typeof budget === 'number') {
+      return new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: currency
+      }).format(budget);
+    }
+    
+    // Si budget est une string
+    if (typeof budget === 'string') {
+      const numBudget = parseFloat(budget);
+      if (!isNaN(numBudget)) {
+        return new Intl.NumberFormat('fr-FR', {
+          style: 'currency',
+          currency: currency
+        }).format(numBudget);
+      }
+      return budget + ' ' + currency;
+    }
+    
+    // Si budget est un objet
+    if (typeof budget === 'object') {
+      console.log('🔍 Budget est un objet:', budget);
+      
+      // Essayer différentes propriétés communes
+      const possibleKeys = ['amount', 'value', 'budget', 'price', 'cost', 'sum', 'total'];
+      
+      for (const key of possibleKeys) {
+        if (budget[key] !== undefined && budget[key] !== null) {
+          const value = budget[key];
+          if (typeof value === 'number') {
+            return new Intl.NumberFormat('fr-FR', {
+              style: 'currency',
+              currency: currency
+            }).format(value);
+          }
+          if (typeof value === 'string') {
+            const numValue = parseFloat(value);
+            if (!isNaN(numValue)) {
+              return new Intl.NumberFormat('fr-FR', {
+                style: 'currency',
+                currency: currency
+              }).format(numValue);
+            }
+          }
+        }
+      }
+      
+      // Si range de budget (min/max)
+      if (budget.min !== undefined && budget.max !== undefined) {
+        return `${budget.min} - ${budget.max} ${currency}`;
+      }
+      
+      // Si on ne trouve rien, afficher l'objet stringifié pour debug
+      return `Budget complexe: ${JSON.stringify(budget)}`;
+    }
+    
+    // Fallback
+    return 'Budget non défini';
+  }
+
   // MÉTHODE DE TEST CORRIGÉE - Charger des missions de test avec types corrects
   loadTestMissions() {
     console.log('🧪 Chargement de missions de test...');
@@ -372,7 +455,7 @@ export class MissionManagementPage implements OnInit, OnDestroy {
         priority: 'medium',
         applicationsCount: 5,
         skillsRequired: ['JavaScript', 'Angular', 'TypeScript'],
-        deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Dans 7 jours
+        deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         isReported: false,
         reportReason: '',
         createdAt: new Date().toISOString(),
@@ -392,7 +475,7 @@ export class MissionManagementPage implements OnInit, OnDestroy {
         priority: 'high',
         applicationsCount: 8,
         skillsRequired: ['TypeScript', 'Ionic', 'Angular'],
-        deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // Dans 14 jours
+        deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
         isReported: true,
         reportReason: 'Contenu inapproprié',
         createdAt: new Date().toISOString(),
@@ -412,7 +495,7 @@ export class MissionManagementPage implements OnInit, OnDestroy {
         priority: 'low',
         applicationsCount: 12,
         skillsRequired: ['React', 'Node.js', 'MongoDB', 'AWS'],
-        deadline: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // Il y a 7 jours
+        deadline: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
         isReported: false,
         reportReason: '',
         createdAt: new Date().toISOString(),
@@ -446,29 +529,115 @@ export class MissionManagementPage implements OnInit, OnDestroy {
     this.loadMissions();
   }
 
-  // Voir les détails d'une mission
-  async viewMissionDetail(mission: Mission) {
-    console.log('👁️ Affichage détails mission:', mission.id);
+  // MÉTHODE CORRIGÉE - Voir les détails d'une mission avec formatage du budget
+  // Version alternative avec affichage structuré et propre :
+
+async viewMissionDetail(mission: Mission) {
+  console.log('👁️ Affichage détails mission:', mission.id);
+  
+  try {
+    // Formatage sécurisé du budget
+    const budgetFormatted = this.formatBudget(mission.budget, mission.currency);
+    
+    // Préparation des données pour l'affichage
+    const details = [
+      { label: 'Description', value: mission.description || 'Aucune description' },
+      { label: 'Client', value: mission.clientName || 'Non spécifié' },
+      { label: 'Budget', value: budgetFormatted },
+      { label: 'Statut', value: this.getStatusLabel(mission.status || 'unknown') },
+      { label: 'Candidatures', value: (mission.applicationsCount || 0).toString() }
+    ];
+    
+    // Ajouter les compétences si elles existent
+    if (mission.skillsRequired && mission.skillsRequired.length > 0) {
+      details.push({ 
+        label: 'Compétences', 
+        value: mission.skillsRequired.join(', ') 
+      });
+    } else {
+      details.push({ 
+        label: 'Compétences', 
+        value: 'Aucune compétence spécifiée' 
+      });
+    }
+    
+    // Ajouter l'échéance si elle existe
+    if (mission.deadline) {
+      details.push({ 
+        label: 'Échéance', 
+        value: new Date(mission.deadline).toLocaleDateString('fr-FR') 
+      });
+    }
+    
+    // Ajouter le signalement si nécessaire
+    if (mission.isReported) {
+      details.push({ 
+        label: '⚠️ Signalement', 
+        value: mission.reportReason || 'Raison non spécifiée' 
+      });
+    }
+    
+    // Construire le message
+    const messageText = details
+      .map(detail => `${detail.label}: ${detail.value}`)
+      .join('\n\n');
     
     const alert = await this.alertController.create({
-      header: mission.title,
-      message: `
-        <div class="mission-detail">
-          <p><strong>Description:</strong><br>${mission.description}</p>
-          <p><strong>Client:</strong> ${mission.clientName}</p>
-          <p><strong>Budget:</strong> ${mission.budget} ${mission.currency}</p>
-          <p><strong>Statut:</strong> ${this.missionService.getStatusLabel(mission.status)}</p>
-          <p><strong>Candidatures:</strong> ${mission.applicationsCount}</p>
-          <p><strong>Compétences:</strong> ${mission.skillsRequired.join(', ')}</p>
-          ${mission.deadline ? `<p><strong>Échéance:</strong> ${new Date(mission.deadline).toLocaleDateString()}</p>` : ''}
-          ${mission.isReported ? `<p><strong>⚠️ Signalée:</strong> ${mission.reportReason}</p>` : ''}
-        </div>
-      `,
-      buttons: ['Fermer'],
-      cssClass: 'mission-detail-alert'
+      header: mission.title || 'Mission sans titre',
+      message: messageText,
+      buttons: [
+        {
+          text: 'Fermer',
+          role: 'cancel'
+        },
+        {
+          text: 'Voir plus de détails',
+          handler: () => {
+            this.openDetailModal(mission);
+          }
+        }
+      ]
     });
     
     await alert.present();
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'affichage des détails:', error);
+    this.showErrorToast('Erreur lors de l\'affichage des détails de la mission');
+  }
+
+  }
+
+  // NOUVELLE MÉTHODE - Ouvrir le modal détaillé
+  async openDetailModal(mission: Mission) {
+    console.log('🔍 Ouverture du modal détaillé pour la mission:', mission.id);
+    
+    try {
+      // Import dynamique du composant modal
+      const { MissionDetailModalComponent } = await import('./components/mission-detail-modal/mission-detail-modal.component');
+      
+      const modal = await this.modalController.create({
+        component: MissionDetailModalComponent,
+        componentProps: {
+          mission: mission
+        },
+        cssClass: 'mission-detail-modal',
+        showBackdrop: true,
+        backdropDismiss: true
+      });
+
+      modal.onDidDismiss().then((result) => {
+        if (result.data && result.data.action === 'updated') {
+          console.log('✅ Mission mise à jour depuis le modal');
+          this.loadMissions(); // Recharger la liste
+          this.loadStats(); // Recharger les stats
+        }
+      });
+
+      await modal.present();
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'ouverture du modal:', error);
+      this.showErrorToast('Erreur lors de l\'ouverture du modal de détails');
+    }
   }
 
   // Supprimer une mission
@@ -638,6 +807,10 @@ export class MissionManagementPage implements OnInit, OnDestroy {
   get startIndex(): number {
     return this.totalItems > 0 ? (this.currentPage - 1) * this.itemsPerPage + 1 : 0;
   }
+  // Méthode pour formater le budget dans le template HTML
+formatBudgetForDisplay(budget: any, currency: string = 'EUR'): string {
+  return this.formatBudget(budget, currency);
+}
 
   // Méthodes pour les toasts
   private async showSuccessToast(message: string) {
