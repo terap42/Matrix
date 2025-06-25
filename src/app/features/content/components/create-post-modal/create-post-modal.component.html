@@ -1,0 +1,346 @@
+<!-- Overlay -->
+<div 
+  *ngIf="isOpen"
+  class="fixed inset-0 z-50 flex items-start justify-center bg-black bg-opacity-50 p-4 pt-8 md:pt-16"
+  (click)="onClose()">
+  
+  <!-- Modal Container -->
+  <div 
+    class="w-full max-w-2xl bg-white rounded-lg shadow-xl max-h-[85vh] overflow-hidden animate-slide-up"
+    (click)="$event.stopPropagation()">
+    
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
+      <div class="flex items-center space-x-3">
+        <img 
+          [src]="getUserAvatar()" 
+          [alt]="getUserDisplayName()"
+          class="w-10 h-10 rounded-full object-cover border-2 border-blue-500">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900">Créer une publication</h2>
+          <p class="text-sm text-gray-500">{{ getUserDisplayName() }}</p>
+        </div>
+      </div>
+      <button 
+        (click)="onClose()"
+        class="p-2 hover:bg-gray-100 rounded-full transition-colors touch-manipulation">
+        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="overflow-y-auto max-h-[calc(85vh-140px)]">
+      <form [formGroup]="postForm" (ngSubmit)="onSubmit()" class="p-4 space-y-6">
+        
+        <!-- Type Selection -->
+        <div class="space-y-3">
+          <label class="block text-sm font-medium text-gray-700">Type de publication</label>
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              (click)="onTypeChange('text')"
+              [ngClass]="{
+                'bg-blue-600 text-white': postType === 'text',
+                'bg-gray-100 text-gray-700 hover:bg-gray-200': postType !== 'text'
+              }"
+              class="px-4 py-2 rounded-full text-sm font-medium transition-colors touch-manipulation">
+              💬 Texte
+            </button>
+            <button
+              type="button"
+              (click)="onTypeChange('project')"
+              [ngClass]="{
+                'bg-blue-600 text-white': postType === 'project',
+                'bg-gray-100 text-gray-700 hover:bg-gray-200': postType !== 'project'
+              }"
+              class="px-4 py-2 rounded-full text-sm font-medium transition-colors touch-manipulation">
+              🚀 Projet
+            </button>
+            <button
+              type="button"
+              (click)="onTypeChange('achievement')"
+              [ngClass]="{
+                'bg-blue-600 text-white': postType === 'achievement',
+                'bg-gray-100 text-gray-700 hover:bg-gray-200': postType !== 'achievement'
+              }"
+              class="px-4 py-2 rounded-full text-sm font-medium transition-colors touch-manipulation">
+              🏆 Réussite
+            </button>
+          </div>
+        </div>
+
+        <!-- Title (optional for text, required for project) -->
+        <div class="space-y-2" *ngIf="postType !== 'text'">
+          <label class="block text-sm font-medium text-gray-700">
+            Titre *
+          </label>
+          <input
+            type="text"
+            formControlName="title"
+            placeholder="Donnez un titre à votre publication..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none">
+        </div>
+
+        <!-- Main Content -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            Contenu *
+          </label>
+          <textarea
+            formControlName="content"
+            rows="4"
+            placeholder="Que voulez-vous partager aujourd'hui ?"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"></textarea>
+          <div class="text-xs text-gray-500">Minimum 10 caractères</div>
+        </div>
+
+        <!-- Project Details (only for project type) -->
+        <div *ngIf="postType === 'project'" class="space-y-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h3 class="font-medium text-blue-900 flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h4a1 1 0 011 1v5m-6 0h6"></path>
+            </svg>
+            <span>Détails du projet</span>
+          </h3>
+          
+          <!-- Project Title -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-blue-900">Titre du projet *</label>
+            <input
+              type="text"
+              formControlName="projectTitle"
+              placeholder="Ex: Application mobile de livraison"
+              class="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+          </div>
+
+          <!-- Project Description -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-blue-900">Description *</label>
+            <textarea
+              formControlName="projectDescription"
+              rows="3"
+              placeholder="Décrivez votre projet en détail..."
+              class="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"></textarea>
+          </div>
+
+          <!-- Technologies -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-blue-900">Technologies</label>
+            <div class="flex flex-wrap gap-2 mb-2" *ngIf="technologies.length > 0">
+              <span 
+                *ngFor="let tech of technologies; let i = index"
+                class="inline-flex items-center px-3 py-1 bg-blue-200 text-blue-800 text-sm rounded-full">
+                {{ tech }}
+                <button
+                  type="button"
+                  (click)="removeTechnology(i)"
+                  class="ml-2 text-blue-600 hover:text-blue-800">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </span>
+            </div>
+            <div class="flex space-x-2">
+              <input
+                type="text"
+                [(ngModel)]="techInput"
+                [ngModelOptions]="{standalone: true}"
+                (keypress)="onTechKeyPress($event)"
+                placeholder="Ajouter une technologie..."
+                class="flex-1 px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+              <button
+                type="button"
+                (click)="addTechnology()"
+                [disabled]="!techInput.trim() || technologies.length >= 10"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation">
+                Ajouter
+              </button>
+            </div>
+            <div class="text-xs text-blue-600">Appuyez sur Entrée ou cliquez sur Ajouter</div>
+          </div>
+
+          <!-- Budget and Duration -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-blue-900">Budget (optionnel)</label>
+              <input
+                type="text"
+                formControlName="projectBudget"
+                placeholder="Ex: 5000-8000€"
+                class="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+            </div>
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-blue-900">Durée (optionnel)</label>
+              <input
+                type="text"
+                formControlName="projectDuration"
+                placeholder="Ex: 3 semaines"
+                class="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+            </div>
+          </div>
+        </div>
+
+        <!-- File Upload -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="block text-sm font-medium text-gray-700">Fichiers (optionnel)</label>
+            <span class="text-xs text-gray-500">{{ selectedFiles.length }}/{{ MAX_FILES }}</span>
+          </div>
+          
+          <!-- Upload Button -->
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button
+              type="button"
+              (click)="triggerFileInput()"
+              [disabled]="selectedFiles.length >= MAX_FILES"
+              class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 rounded-lg transition-colors touch-manipulation">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+              </svg>
+              Ajouter des fichiers
+            </button>
+          </div>
+
+          <!-- File Input (hidden) -->
+          <input
+            id="fileInput"
+            type="file"
+            multiple
+            accept="image/*,video/*,.pdf,.doc,.docx,.txt"
+            (change)="onFileSelect($event)"
+            class="hidden">
+
+          <!-- File Previews -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3" *ngIf="selectedFiles.length > 0">
+            <div 
+              *ngFor="let file of selectedFiles; let i = index"
+              class="relative border border-gray-200 rounded-lg p-3 bg-gray-50">
+              
+              <!-- Image Preview -->
+              <div *ngIf="file.type === 'image'" class="relative">
+                <img 
+                  [src]="file.url" 
+                  [alt]="file.name"
+                  class="w-full h-24 object-cover rounded-lg mb-2">
+                <button
+                  type="button"
+                  (click)="removeFile(i)"
+                  class="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 touch-manipulation">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Video Preview -->
+              <div *ngIf="file.type === 'video'" class="relative">
+                <video 
+                  [src]="file.url"
+                  class="w-full h-24 object-cover rounded-lg mb-2"
+                  muted>
+                </video>
+                <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 rounded-lg mb-2">
+                  <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+                <button
+                  type="button"
+                  (click)="removeFile(i)"
+                  class="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 touch-manipulation">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Document Preview -->
+              <div *ngIf="file.type === 'document'" class="flex items-center space-x-3">
+                <div class="flex-shrink-0">
+                  <svg class="w-10 h-10 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-900 truncate">{{ file.name }}</p>
+                  <p class="text-xs text-gray-500">{{ file.size }}</p>
+                </div>
+                <button
+                  type="button"
+                  (click)="removeFile(i)"
+                  class="flex-shrink-0 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 touch-manipulation">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- File Info for images/videos -->
+              <div *ngIf="file.type !== 'document'" class="flex items-center justify-between text-xs text-gray-500">
+                <span class="truncate">{{ file.name }}</span>
+                <span>{{ file.size }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-xs text-gray-500">
+            Formats supportés: Images (JPEG, PNG, GIF, WebP), Vidéos (MP4, WebM, OGG, AVI, MOV), Documents (PDF, DOC, DOCX, TXT) - Max 50MB par fichier
+          </div>
+        </div>
+
+        <!-- Urgent Toggle -->
+        <div class="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div class="flex items-center space-x-3">
+            <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            <div>
+              <div class="font-medium text-yellow-900">Publication urgente</div>
+              <div class="text-sm text-yellow-700">Mettre en avant cette publication</div>
+            </div>
+          </div>
+          <button
+            type="button"
+            (click)="toggleUrgent()"
+            [ngClass]="{
+              'bg-yellow-600': isUrgent,
+              'bg-gray-300': !isUrgent
+            }"
+            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 touch-manipulation">
+            <span
+              [ngClass]="{
+                'translate-x-6': isUrgent,
+                'translate-x-1': !isUrgent
+              }"
+              class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <div class="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50">
+      <div class="text-sm text-gray-500">
+        Votre publication sera visible par tous les utilisateurs
+      </div>
+      <div class="flex space-x-3">
+        <button
+          type="button"
+          (click)="onClose()"
+          class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors touch-manipulation">
+          Annuler
+        </button>
+        <button
+          type="submit"
+          (click)="onSubmit()"
+          [disabled]="!postForm.valid"
+          class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation">
+          Publier
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

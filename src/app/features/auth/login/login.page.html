@@ -1,52 +1,205 @@
-<div class="relative w-full h-screen text-white font-sans">
-  <!-- Image de fond avec filtre -->
-  <div class="absolute inset-0 bg-cover bg-center brightness-50" style="background-image: url('/assets/images/log.png');"></div>
+<!-- src/app/login/login.page.html du matrix -->
+<div class="min-h-screen bg-cover bg-center md:bg-top text-white font-sans flex items-center justify-center p-4"
+  style="background-image: url('/assets/images/log.png');">
+  <!-- Overlay avec flou -->
+  <div class="absolute inset-0 backdrop-blur-[1px] bg-black/80"></div>
 
-  <!-- Contenu centré -->
-  <div class="relative z-10 flex flex-col justify-center h-full px-8">
-
-    <!-- Logo texte centré -->
-    <div class="flex justify-center items-center mb-12">
-      <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-        <span class="text-white font-bold text-2xl">M</span>
+  <!-- Contenu principal pour desktop -->
+  <div class="hidden md:block relative z-10 w-full max-w-md">
+    <!-- Carte avec fond semi-transparent -->
+    <div class="bg-black/50 rounded-2xl border border-none p-8 shadow-2xl">
+      <!-- Logo Matrix - version épurée -->
+      <div class="text-center mb-10">
+        <div class="flex justify-center items-center mb-4">
+          <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+            <span class="text-white font-bold text-2xl">M</span>
+          </div>
+          <span class="ml-3 text-4xl font-bold text-blue-400 tracking-wide font-serif">MATRIX</span>
+        </div>
+        <p class="text-gray-400 mt-2">Accès à votre espace</p>
       </div>
-      <span class="ml-3 text-4xl font-bold text-yellow-400 tracking-wide font-serif">MATRIX</span>
-    </div>
 
-    <!-- Champ Identifiant -->
-    <div class="mb-6">
-      <label class="block text-sm mb-1">Identifiant</label>
-      <input [(ngModel)]="email"
-             type="text"
-             class="bg-transparent w-full text-white placeholder-white border-0 border-b border-yellow-400 pb-1 focus:outline-none focus:ring-0 focus:border-yellow-400"
-             placeholder="Entrez votre identifiant" />
-    </div>
+      <!-- Formulaire -->
+      <form class="space-y-6" [formGroup]="loginForm" (ngSubmit)="login()">
+        <!-- Champ Email -->
+        <div class="mb-4">
+          <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Identifiant</label>
+          <div class="relative">
+            <input id="email" type="email" formControlName="email"
+              class="bg-transparent w-full text-white placeholder-gray-400 border-0 border-b border-blue-400 pb-2 focus:outline-none focus:ring-0 focus:border-blue-400 transition-colors"
+              placeholder="Entrez votre identifiant"
+              [ngClass]="{'!border-red-500': loginForm.get('email')?.invalid && loginForm.get('email')?.touched}" />
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+              </svg>
+            </div>
+          </div>
+          <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+            class="text-red-500 text-sm mt-1">
+            <span *ngIf="loginForm.get('email')?.errors?.['required']">Email requis</span>
+            <span *ngIf="loginForm.get('email')?.errors?.['email']">Format d'email invalide</span>
+          </div>
+        </div>
 
-    <!-- Champ Mot de passe -->
-    <div class="mb-6">
-      <label class="block text-sm mb-1">Mot de passe</label>
-      <input [(ngModel)]="password"
-             type="password"
-             class="bg-transparent w-full text-white placeholder-white border-0 border-b border-yellow-400 pb-1 focus:outline-none focus:ring-0 focus:border-yellow-400"
-             placeholder="Entrez votre mot de passe" />
-    </div>
+        <!-- Champ Mot de passe -->
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-300 mb-1">Mot de passe</label>
+          <div class="relative mb-6">
+            <input id="password" formControlName="password"
+              class="bg-transparent w-full text-white placeholder-gray-400 border-0 border-b border-blue-400 pb-2 focus:outline-none focus:ring-0 focus:border-blue-400 transition-colors"
+              placeholder="Entrez votre mot de passe" [type]="hidePassword ? 'password' : 'text'"
+              [ngClass]="{'!border-red-500': loginForm.get('password')?.invalid && loginForm.get('password')?.touched}" />
+            <div class="absolute inset-y-3 right-0 flex items-center pr-3"
+              [ngClass]="{'top-0': loginForm.get('password')?.invalid && loginForm.get('password')?.touched}"
+              (click)="togglePasswordVisibility()">
+              <ion-icon [name]="hidePassword ? 'eye-off' : 'eye'" class="cursor-pointer"></ion-icon>
+            </div>
+            <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+              class="text-red-500 text-sm mt-1">
+              <span *ngIf="loginForm.get('password')?.errors?.['required']">Mot de passe requis</span>
+              <span *ngIf="loginForm.get('password')?.errors?.['minlength']">Le mot de passe doit contenir au moins 6
+                caractères</span>
+            </div>
+          </div>
+        </div>
 
-    <!-- Bouton d'envoi -->
-    <div class="flex justify-end mb-6">
-      <button (click)="login()" class="w-12 h-12 text-yellow-400 flex items-center justify-center hover:bg-yellow-400 hover:text-black transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-        </svg>
-      </button>
-    </div>
+        <!-- Lien mot de passe oublié -->
+        <div class="flex justify-end mb-4">
+          <a (click)="goToForgotPassword()" class="text-xs text-blue-400 hover:text-blue-300 cursor-pointer">Mot de passe oublié ?</a>
+        </div>
 
-    <!-- Lien d'inscription -->
-    <div class="text-center text-sm text-gray-300">
-      <p>Pas encore inscrit ?</p>
-      <a routerLink="/register" class="text-yellow-400 underline font-medium hover:text-yellow-300 transition-colors">
-        Crée un compte ici
-      </a>
+        <!-- Error message -->
+        <div *ngIf="loginError" class="bg-red-500/10 border border-red-500/30 text-red-500 p-3 rounded mb-6 text-sm">
+          {{ loginError }}
+        </div>
+
+        <!-- Bouton de connexion -->
+        <button type="submit" [disabled]="loginForm.invalid || isLoading" class="w-full flex justify-center items-center space-x-2 bg-blue-500 
+         text-white font-medium py-3 px-4 rounded-lg transition-colors 
+         focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-800
+         enabled:hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed">
+          <span>Se connecter</span>
+          <svg *ngIf="!isLoading" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+          <svg *ngIf="isLoading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
+            fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+          </svg>
+        </button>
+
+      </form>
+
+      <!-- Lien d'inscription -->
+      <div class="mt-6 text-center text-sm text-gray-400">
+        <p>Pas encore inscrit ? <a (click)="goToRegister()"
+            class="text-blue-400 font-medium hover:text-blue-300 transition-colors cursor-pointer">Créer un compte</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenu pour mobile -->
+  <div class="md:hidden z-10 w-full">
+    <!-- Carte avec fond semi-transparent -->
+    <div class="">
+      <!-- Logo Matrix - version épurée -->
+      <div class="text-center mb-10">
+        <div class="flex justify-center items-center mb-4">
+          <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+            <span class="text-white font-bold text-2xl">M</span>
+          </div>
+          <span class="ml-3 text-4xl font-bold text-blue-400 tracking-wide font-sans">MATRIX</span>
+        </div>
+      </div>
+
+      <!-- Formulaire -->
+      <form class="space-y-6 px-4" [formGroup]="loginForm" (ngSubmit)="login()">
+        <!-- Champ Email -->
+        <div class="mb-4">
+          <label for="email-mobile" class="block text-sm font-medium text-gray-300 mb-1">Identifiant</label>
+          <div class="relative">
+            <input id="email-mobile" type="email" formControlName="email"
+              class="bg-transparent w-full text-white placeholder-gray-400 border-0 border-b border-blue-400 pb-2 focus:outline-none focus:ring-0 focus:border-blue-400 transition-colors"
+              placeholder="Entrez votre identifiant"
+              [ngClass]="{'!border-red-500': loginForm.get('email')?.invalid && loginForm.get('email')?.touched}" />
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+              </svg>
+            </div>
+          </div>
+          <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+            class="text-red-500 text-sm mt-1">
+            <span *ngIf="loginForm.get('email')?.errors?.['required']">Email requis</span>
+            <span *ngIf="loginForm.get('email')?.errors?.['email']">Format d'email invalide</span>
+          </div>
+        </div>
+
+        <!-- Champ Mot de passe -->
+        <div class="mb-4">
+          <label for="password-mobile" class="block text-sm font-medium text-gray-300 mb-1">Mot de passe</label>
+          <div class="relative mb-6">
+            <input id="password-mobile" formControlName="password"
+              class="bg-transparent w-full text-white placeholder-gray-400 border-0 border-b border-blue-400 pb-2 focus:outline-none focus:ring-0 focus:border-blue-400 transition-colors"
+              placeholder="Entrez votre mot de passe" [type]="hidePassword ? 'password' : 'text'"
+              [ngClass]="{'!border-red-500': loginForm.get('password')?.invalid && loginForm.get('password')?.touched}" />
+            <div class="absolute inset-y-3 right-0 flex items-center pr-3"
+              [ngClass]="{'top-0': loginForm.get('password')?.invalid && loginForm.get('password')?.touched}"
+              (click)="togglePasswordVisibility()">
+              <ion-icon [name]="hidePassword ? 'eye-off' : 'eye'" class="cursor-pointer"></ion-icon>
+            </div>
+            <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+              class="text-red-500 text-sm mt-1">
+              <span *ngIf="loginForm.get('password')?.errors?.['required']">Mot de passe requis</span>
+              <span *ngIf="loginForm.get('password')?.errors?.['minlength']">Le mot de passe doit contenir au moins 6
+                caractères</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error message -->
+        <div *ngIf="loginError" class="bg-red-500/10 border border-red-500/30 text-red-500 p-3 rounded mb-6 text-sm">
+          {{ loginError }}
+        </div>
+
+        <!-- Lien mot de passe oublié pour mobile -->
+        <div class="flex justify-end mt-1">
+          <a (click)="goToForgotPassword()" class="text-xs text-blue-400 hover:text-blue-300 cursor-pointer">Mot de passe oublié ?</a>
+        </div>
+
+        <!-- Bouton de connexion -->
+        <div class="mx-auto w-full">
+          <button type="submit" [disabled]="loginForm.invalid || isLoading" class="w-14 h-14 mx-auto rounded-full bg-blue-500 enabled:hover:bg-blue-600 text-white shadow-lg flex items-center justify-center transition-transform hover:scale-105
+            disabled:opacity-50 disabled:cursor-not-allowed">
+            <svg *ngIf="!isLoading" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+            <svg *ngIf="isLoading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
+              fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+              </path>
+            </svg>
+          </button>
+        </div>
+      </form>
+
+      <!-- Lien d'inscription -->
+      <div class="mt-6 text-center text-sm text-gray-400">
+        <p>Pas encore inscrit ? <span (click)="goToRegister()"
+            class="text-blue-400 font-medium hover:text-blue-300 transition-colors cursor-pointer">Créer un compte</span></p>
+      </div>
     </div>
   </div>
 </div>

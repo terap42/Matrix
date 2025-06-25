@@ -9,7 +9,7 @@ const routes: Routes = [
     component: TabsLayoutPage,
     children: [
       {
-        path: 'home',
+        path: 'homes',
         loadChildren: () => import('../home/home.module').then(m => m.HomePageModule),
         canActivate: [AuthGuard]
       },
@@ -52,6 +52,10 @@ const routes: Routes = [
           }
         ]
       },
+       {
+    path: 'home',
+    loadChildren: () => import('../content/content.module').then( m => m.ContentPageModule)
+  },
       {
         path: '',
         redirectTo: 'home',

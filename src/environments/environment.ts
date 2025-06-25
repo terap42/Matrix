@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000/api', // ✅ Ajustez selon votre configuration
+  apiUrl: 'http://localhost:3000/api',  // ✅ Ajustez selon votre configuration
   apiTimeout: 30000,
   
   // Configuration de l'app

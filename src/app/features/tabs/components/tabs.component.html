@@ -4,38 +4,41 @@
     <router-outlet></router-outlet>
   </div>
   <!-- Affiche la barre de navigation SEULEMENT si on n'est PAS sur la page de détail -->
-  <div 
+  <div
     class="fixed bottom-0 left-0 right-0 bg-blue-700 text-white z-50 pb-safe-offset"
     *ngIf="!isOnDetailsPage()"
   >
     <div class="flex justify-between items-center">
-      <a (click)="navigate('home')" class="flex-1 flex flex-col items-center justify-center py-2"
-        [class.opacity-100]="isActive('home')" [class.opacity-60]="!isActive('home')">
-        <ion-icon name="home" class="text-2xl"></ion-icon>
-        <span class="text-xs">Accueil</span>
+      <a (click)="navigate('home')" class="flex-1 flex flex-col items-center justify-center py-2 min-w-0"
+         [class.opacity-100]="isActive('home')" [class.opacity-60]="!isActive('home')">
+        <ion-icon name="home" class="text-lg sm:text-2xl mb-1"></ion-icon>
+        <span class="text-xs sm:text-sm truncate">Accueil</span>
       </a>
-      <a (click)="navigate('missions')" class="flex-1 flex flex-col items-center justify-center py-2"
-        [class.opacity-100]="isActive('missions')" [class.opacity-60]="!isActive('missions')">
-        <ion-icon name="information-circle" class="text-2xl"></ion-icon>
-        <span class="text-xs">Missions</span>
+      <a (click)="navigate('missions')" class="flex-1 flex flex-col items-center justify-center py-2 min-w-0"
+         [class.opacity-100]="isActive('missions')" [class.opacity-60]="!isActive('missions')">
+        <ion-icon name="briefcase" class="text-lg sm:text-2xl mb-1"></ion-icon>
+        <span class="text-xs sm:text-sm truncate">Missions</span>
       </a>
-      <a (click)="navigate('messageriefrree')" class="flex-1 flex flex-col items-center justify-center py-2"
-        [class.opacity-100]="isActive('messageriefrree')" [class.opacity-60]="!isActive('messageriefrree')">
-        <ion-icon name="book" class="text-2xl"></ion-icon>
-        <span class="text-xs">Messagerie</span>
+      <a (click)="navigate('homes')" class="flex-1 flex flex-col items-center justify-center py-2 min-w-0"
+         [class.opacity-100]="isActive('homes')" [class.opacity-60]="!isActive('homes')">
+        <ion-icon name="bar-chart" class="text-lg sm:text-2xl mb-1"></ion-icon>
+        <span class="text-xs sm:text-sm truncate">Statistique</span>
       </a>
-      <a (click)="navigate('freelance-profile')" class="flex-1 flex flex-col items-center justify-center py-2"
-        [class.opacity-100]="isActive('freelance-profile')" [class.opacity-60]="!isActive('freelance-profile')">
-        <ion-icon name="book" class="text-2xl"></ion-icon>
-        <span class="text-xs">Profil</span>
+      <a (click)="navigate('messageriefrree')" class="flex-1 flex flex-col items-center justify-center py-2 min-w-0"
+         [class.opacity-100]="isActive('messageriefrree')" [class.opacity-60]="!isActive('messageriefrree')">
+        <ion-icon name="chatbubbles" class="text-lg sm:text-2xl mb-1"></ion-icon>
+        <span class="text-xs sm:text-sm truncate">Messagerie</span>
+      </a>
+      <a (click)="navigate('freelance-profile')" class="flex-1 flex flex-col items-center justify-center py-2 min-w-0"
+         [class.opacity-100]="isActive('freelance-profile')" [class.opacity-60]="!isActive('freelance-profile')">
+        <ion-icon name="person" class="text-lg sm:text-2xl mb-1"></ion-icon>
+        <span class="text-xs sm:text-sm truncate">Profil</span>
       </a>
       <!-- <a (click)="navigate('settings')" class="flex-1 flex flex-col items-center justify-center py-2"
-        [class.opacity-100]="isActive('settings')" [class.opacity-60]="!isActive('settings')">
-        <ion-icon name="settings" class="text-2xl"></ion-icon>
-        <span class="text-xs">Settings</span>
-      </a> -->
-     
-      
+           [class.opacity-100]="isActive('settings')" [class.opacity-60]="!isActive('settings')">
+           <ion-icon name="settings" class="text-2xl"></ion-icon>
+           <span class="text-xs">Settings</span>
+           </a> -->
     </div>
   </div>
   

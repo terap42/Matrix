@@ -1,59 +1,99 @@
 <!-- src/app/register/register.page.html -->
-<div class="relative w-full h-screen text-white font-sans">
-  <!-- Image de fond avec filtre -->
-  <div class="absolute inset-0 bg-cover bg-center brightness-50" style="background-image: url('/assets/images/log.png');"></div>
-  
-  <!-- Contenu centré -->
-  <div class="relative z-10 flex flex-col justify-center h-full px-8">
-    <!-- Logo texte centré -->
-    <div class="flex justify-center items-center mb-8">
-      <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-        <span class="text-white font-bold text-2xl">M</span>
+<div class="bg-white min-h-screen">
+  <!-- En-tête bleu -->
+  <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-6 shadow-lg">
+    <div class="max-w-md mx-auto px-6">
+      <!-- Logo -->
+      <div class="flex justify-center items-center">
+        <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-md">
+          <span class="text-blue-600 font-bold text-2xl">M</span>
+        </div>
+        <span class="ml-3 text-3xl font-bold tracking-wide">MATRIX</span>
       </div>
-      <span class="ml-3 text-4xl font-bold text-yellow-400 tracking-wide font-serif">MATRIX</span>
     </div>
+  </div>
 
+  <!-- Contenu principal -->
+  <div class="max-w-md mx-auto px-6 py-8">
     <!-- Barre de progression -->
-    <div class="mb-6">
-      <div class="flex justify-between items-center mb-2">
-        <span class="text-sm text-gray-300">Étape {{ currentStep }} sur {{ totalSteps }}</span>
-        <span class="text-sm text-yellow-400">{{ currentStep === 1 ? 'Sécurité' : currentStep === 2 ? 'Profil' : 'Finalisation' }}</span>
+    <div class="mb-8">
+      <div class="flex justify-between items-center mb-3">
+        <span class="text-sm text-gray-600">Étape {{ currentStep }} sur {{ totalSteps }}</span>
+        <span class="text-sm text-blue-600 font-medium">{{ currentStep === 1 ? 'Sécurité' : currentStep === 2 ? 'Profil' : 'Finalisation' }}</span>
       </div>
-      <div class="w-full bg-gray-700 rounded-full h-2">
-        <div class="bg-gradient-to-r from-yellow-400 to-yellow-500 h-2 rounded-full transition-all duration-300" 
+      <div class="w-full bg-gray-200 rounded-full h-2">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300" 
              [style.width]="getProgressWidth()"></div>
       </div>
     </div>
 
     <!-- Étape 1: Informations de connexion -->
     <div *ngIf="currentStep === 1" class="space-y-6">
-      <div>
-        <label class="block text-sm mb-1">Email *</label>
-        <input [(ngModel)]="formData.email"
-               type="email"
-               class="bg-transparent w-full text-white placeholder-white border-0 border-b border-yellow-400 pb-1 focus:outline-none focus:ring-0 focus:border-yellow-400"
-               placeholder="votre.email@exemple.com" />
+      <h2 class="text-xl font-semibold text-gray-800 mb-6">Informations de connexion</h2>
+      
+      <!-- Email avec validation -->
+      <div class="form-group">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+        <input 
+          [(ngModel)]="formData.email"
+          (input)="validateEmailField()"
+          type="email"
+          placeholder="votre.email@exemple.com"
+          class="w-full px-4 py-3 border rounded-lg focus:outline-none custom-input"
+          [class.error]="emailError && formData.email.length > 0" />
+        <div *ngIf="emailError && formData.email.length > 0" class="error-message">
+          {{ emailError }}
+        </div>
       </div>
 
-      <div>
-        <label class="block text-sm mb-1">Mot de passe *</label>
-        <input [(ngModel)]="formData.password"
-               type="password"
-               class="bg-transparent w-full text-white placeholder-white border-0 border-b border-yellow-400 pb-1 focus:outline-none focus:ring-0 focus:border-yellow-400"
-               placeholder="Minimum 6 caractères" />
+      <!-- Mot de passe avec validation -->
+      <div class="form-group">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Mot de passe *</label>
+        <input 
+          [(ngModel)]="formData.password"
+          (input)="validatePasswordField()"
+          type="password"
+          placeholder="Minimum 6 caractères"
+          class="w-full px-4 py-3 border rounded-lg focus:outline-none custom-input"
+          [class.error]="passwordError && formData.password.length > 0" />
+        <div *ngIf="passwordError && formData.password.length > 0" class="error-message">
+          {{ passwordError }}
+        </div>
+        <!-- Indicateurs de force du mot de passe -->
+        <div *ngIf="formData.password.length > 0" class="password-strength mt-2">
+          <div class="flex space-x-2 text-xs">
+            <span [class]="passwordChecks.length ? 'text-green-600' : 'text-red-500'">
+              {{ passwordChecks.length ? '✓' : '✗' }} 6+ caractères
+            </span>
+            <span [class]="passwordChecks.hasLetter ? 'text-green-600' : 'text-red-500'">
+              {{ passwordChecks.hasLetter ? '✓' : '✗' }} Lettre
+            </span>
+            <span [class]="passwordChecks.hasNumber ? 'text-green-600' : 'text-red-500'">
+              {{ passwordChecks.hasNumber ? '✓' : '✗' }} Chiffre
+            </span>
+          </div>
+        </div>
       </div>
 
-      <div>
-        <label class="block text-sm mb-1">Confirmer le mot de passe *</label>
-        <input [(ngModel)]="confirmPassword"
-               type="password"
-               class="bg-transparent w-full text-white placeholder-white border-0 border-b border-yellow-400 pb-1 focus:outline-none focus:ring-0 focus:border-yellow-400"
-               placeholder="Répétez votre mot de passe" />
+      <!-- Confirmation mot de passe avec validation -->
+      <div class="form-group">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Confirmer le mot de passe *</label>
+        <input 
+          [(ngModel)]="confirmPassword"
+          (input)="validateConfirmPasswordField()"
+          type="password"
+          placeholder="Répétez votre mot de passe"
+          class="w-full px-4 py-3 border rounded-lg focus:outline-none custom-input"
+          [class.error]="confirmPasswordError && confirmPassword.length > 0" />
+        <div *ngIf="confirmPasswordError && confirmPassword.length > 0" class="error-message">
+          {{ confirmPasswordError }}
+        </div>
       </div>
 
       <div class="flex justify-end pt-4">
-        <button (click)="nextStep()" 
-                class="px-6 py-3 bg-yellow-400 text-black font-medium rounded-lg hover:bg-yellow-300 transition-colors">
+        <button 
+          (click)="nextStep()" 
+          class="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md custom-button">
           Suivant
         </button>
       </div>
@@ -61,60 +101,70 @@
 
     <!-- Étape 2: Informations personnelles -->
     <div *ngIf="currentStep === 2" class="space-y-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-6">Informations personnelles</h2>
+      
       <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm mb-1">Prénom *</label>
-          <input [(ngModel)]="formData.first_name"
-                 type="text"
-                 class="bg-transparent w-full text-white placeholder-white border-0 border-b border-yellow-400 pb-1 focus:outline-none focus:ring-0 focus:border-yellow-400"
-                 placeholder="John" />
+        <div class="form-group">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Prénom *</label>
+          <input 
+            [(ngModel)]="formData.first_name"
+            (input)="validateFirstNameField()"
+            type="text"
+            placeholder="John"
+            class="w-full px-4 py-3 border rounded-lg focus:outline-none custom-input"
+            [class.error]="firstNameError && formData.first_name.length > 0" />
+          <div *ngIf="firstNameError && formData.first_name.length > 0" class="error-message">
+            {{ firstNameError }}
+          </div>
         </div>
-        <div>
-          <label class="block text-sm mb-1">Nom *</label>
-          <input [(ngModel)]="formData.last_name"
-                 type="text"
-                 class="bg-transparent w-full text-white placeholder-white border-0 border-b border-yellow-400 pb-1 focus:outline-none focus:ring-0 focus:border-yellow-400"
-                 placeholder="Doe" />
+        <div class="form-group">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Nom *</label>
+          <input 
+            [(ngModel)]="formData.last_name"
+            (input)="validateLastNameField()"
+            type="text"
+            placeholder="Doe"
+            class="w-full px-4 py-3 border rounded-lg focus:outline-none custom-input"
+            [class.error]="lastNameError && formData.last_name.length > 0" />
+          <div *ngIf="lastNameError && formData.last_name.length > 0" class="error-message">
+            {{ lastNameError }}
+          </div>
         </div>
       </div>
 
       <div>
-        <label class="block text-sm mb-3">Type de compte *</label>
+        <label class="block text-sm font-medium text-gray-700 mb-3">Type de compte *</label>
         <div class="space-y-3">
-          <label class="flex items-center cursor-pointer">
-            <input [(ngModel)]="formData.user_type" 
-                   name="user_type" 
-                   type="radio" 
-                   value="freelance" 
-                   class="sr-only">
-            <div class="w-5 h-5 rounded-full border-2 border-yellow-400 mr-3 flex items-center justify-center"
-                 [class.bg-yellow-400]="formData.user_type === 'freelance'">
-              <div *ngIf="formData.user_type === 'freelance'" class="w-2 h-2 rounded-full bg-black"></div>
-            </div>
-            <span>Je suis un freelance</span>
+          <label class="flex items-center cursor-pointer p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors radio-item">
+            <input 
+              [(ngModel)]="formData.user_type" 
+              name="user_type" 
+              type="radio" 
+              value="freelance" 
+              class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" />
+            <span class="ml-3 text-gray-700">Je suis un freelance</span>
           </label>
-          <label class="flex items-center cursor-pointer">
-            <input [(ngModel)]="formData.user_type" 
-                   name="user_type" 
-                   type="radio" 
-                   value="client"
-                   class="sr-only">
-            <div class="w-5 h-5 rounded-full border-2 border-yellow-400 mr-3 flex items-center justify-center"
-                 [class.bg-yellow-400]="formData.user_type === 'client'">
-              <div *ngIf="formData.user_type === 'client'" class="w-2 h-2 rounded-full bg-black"></div>
-            </div>
-            <span>Je recherche des freelances</span>
+          <label class="flex items-center cursor-pointer p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors radio-item">
+            <input 
+              [(ngModel)]="formData.user_type" 
+              name="user_type" 
+              type="radio" 
+              value="client"
+              class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" />
+            <span class="ml-3 text-gray-700">Je recherche des freelances</span>
           </label>
         </div>
       </div>
 
       <div class="flex justify-between pt-4">
-        <button (click)="prevStep()" 
-                class="px-6 py-3 border border-yellow-400 text-yellow-400 font-medium rounded-lg hover:bg-yellow-400 hover:text-black transition-colors">
+        <button 
+          (click)="prevStep()" 
+          class="px-6 py-3 border border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors custom-button-outline">
           Précédent
         </button>
-        <button (click)="nextStep()" 
-                class="px-6 py-3 bg-yellow-400 text-black font-medium rounded-lg hover:bg-yellow-300 transition-colors">
+        <button 
+          (click)="nextStep()" 
+          class="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md custom-button">
           Suivant
         </button>
       </div>
@@ -122,38 +172,45 @@
 
     <!-- Étape 3: Informations optionnelles -->
     <div *ngIf="currentStep === 3" class="space-y-6">
-      <div>
-        <label class="block text-sm mb-1">Téléphone</label>
-        <input [(ngModel)]="formData.phone"
-               type="tel"
-               class="bg-transparent w-full text-white placeholder-white border-0 border-b border-yellow-400 pb-1 focus:outline-none focus:ring-0 focus:border-yellow-400"
-               placeholder="+33 1 23 45 67 89" />
+      <h2 class="text-xl font-semibold text-gray-800 mb-6">Finalisation</h2>
+      
+      <div class="form-group">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
+        <input 
+          [(ngModel)]="formData.phone"
+          type="tel"
+          placeholder="+33 1 23 45 67 89"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none custom-input" />
       </div>
 
-      <div>
-        <label class="block text-sm mb-1">Localisation</label>
-        <input [(ngModel)]="formData.location"
-               type="text"
-               class="bg-transparent w-full text-white placeholder-white border-0 border-b border-yellow-400 pb-1 focus:outline-none focus:ring-0 focus:border-yellow-400"
-               placeholder="Paris, France" />
+      <div class="form-group">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Localisation</label>
+        <input 
+          [(ngModel)]="formData.location"
+          type="text"
+          placeholder="Paris, France"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none custom-input" />
       </div>
 
-      <div>
-        <label class="block text-sm mb-1">Bio / Présentation</label>
-        <textarea [(ngModel)]="formData.bio"
-                  rows="3"
-                  class="bg-transparent w-full text-white placeholder-white border border-yellow-400 rounded p-2 focus:outline-none focus:ring-0 focus:border-yellow-400 resize-none"
-                  placeholder="Parlez-vous en quelques mots..."></textarea>
+      <div class="form-group">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Bio / Présentation</label>
+        <textarea 
+          [(ngModel)]="formData.bio"
+          rows="3"
+          placeholder="Parlez-vous en quelques mots..."
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none custom-input resize-none"></textarea>
       </div>
 
       <div class="flex justify-between pt-4">
-        <button (click)="prevStep()" 
-                class="px-6 py-3 border border-yellow-400 text-yellow-400 font-medium rounded-lg hover:bg-yellow-400 hover:text-black transition-colors">
+        <button 
+          (click)="prevStep()" 
+          class="px-6 py-3 border border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors custom-button-outline">
           Précédent
         </button>
-        <button (click)="register()" 
-                [disabled]="isLoading"
-                class="px-6 py-3 bg-yellow-400 text-black font-medium rounded-lg hover:bg-yellow-300 transition-colors disabled:opacity-50">
+        <button 
+          (click)="register()" 
+          [disabled]="isLoading || !isFormValid()"
+          class="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md custom-button disabled:opacity-50 disabled:cursor-not-allowed">
           <span *ngIf="!isLoading">Créer mon compte</span>
           <span *ngIf="isLoading">Création...</span>
         </button>
@@ -161,9 +218,9 @@
     </div>
 
     <!-- Lien de connexion -->
-    <div class="text-center text-sm text-gray-300 mt-8">
-      <p>Déjà inscrit ?</p>
-      <a (click)="goToLogin()" class="text-yellow-400 underline font-medium hover:text-yellow-300 transition-colors cursor-pointer">
+    <div class="text-center text-sm text-gray-600 mt-8 pt-8 border-t border-gray-200">
+      <p class="mb-2">Déjà inscrit ?</p>
+      <a (click)="goToLogin()" class="text-blue-600 underline font-medium hover:text-blue-700 transition-colors cursor-pointer">
         Se connecter ici
       </a>
     </div>

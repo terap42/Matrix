@@ -39,7 +39,7 @@ export class TabsComponent implements OnInit {
     // Ajoutez votre logique ici
     // Par exemple, vérifier si l'utilisateur est connecté
     // return this.authService.isLoggedIn();
-    return true; // ou false selon votre logique
+    return true; 
   }
 
   async openUserProfileModal() {

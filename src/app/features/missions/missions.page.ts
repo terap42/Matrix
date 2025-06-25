@@ -1,7 +1,9 @@
+// src/app/features/missions/missions.page.ts - VERSION AVEC LOGIQUE COMPLÈTE
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { MissionService, Mission, CreateMissionRequest } from './services/mission.service';
+import { ApplicationService } from './services/application.service';
 import { AuthService, User } from '../auth/services/auth.service';
 
 @Component({
@@ -39,9 +41,13 @@ export class MissionsPage implements OnInit, OnDestroy {
     isUrgent: false
   };
 
+  // Modal de candidature
+  showApplicationModal: boolean = false;
+  selectedMissionForApplication: Mission | null = null;
+  userApplications: Map<string, string> = new Map();
+
   private subscriptions: Subscription = new Subscription();
 
-  // ✅ CORRECTION : Harmoniser les valeurs avec le formulaire HTML
   categories = [
     { value: 'all', label: 'Toutes', count: 0 },
     { value: 'design', label: 'Design', count: 0 },
@@ -69,22 +75,21 @@ export class MissionsPage implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private missionService: MissionService,
-    private authService: AuthService
+    private applicationService: ApplicationService,
+    public authService: AuthService // ✅ Rendu public pour être accessible dans le template
   ) {}
 
   ngOnInit() {
+    console.log('🚀 Initialisation de MissionsPage');
     this.initializeAuth();
     this.loadMissions();
+    this.loadUserApplications();
     
-    // S'abonner aux changements des missions
     this.subscriptions.add(
       this.missionService.missions$.subscribe(missions => {
         this.missions = missions;
         this.updateCategoryCounts();
         this.applyFilters();
-        
-        // ✅ Debug temporaire
-        setTimeout(() => this.debugCategories(), 500);
       })
     );
   }
@@ -93,19 +98,271 @@ export class MissionsPage implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  // Initialiser les données d'authentification
+  // ==================== GESTION DE L'AUTHENTIFICATION ====================
+
   private initializeAuth() {
     this.subscriptions.add(
       this.authService.currentUser$.subscribe(user => {
         this.currentUser = user;
         this.isLoggedIn = !!user;
-        console.log('👤 Utilisateur actuel:', user);
+        console.log('👤 Utilisateur connecté:', user?.user_type);
+        
+        // Charger les candidatures seulement pour les freelances
+        if (user && this.authService.isFreelance()) {
+          this.loadUserApplications();
+        } else {
+          this.userApplications.clear(); // Nettoyer si pas freelance
+        }
       })
     );
 
     this.isLoggedIn = this.authService.isLoggedIn();
     this.currentUser = this.authService.getCurrentUserValue();
   }
+
+  private loadUserApplications() {
+    if (!this.isLoggedIn || !this.authService.isFreelance()) {
+      console.log('⏭️ Pas de chargement de candidatures (pas freelance)');
+      return;
+    }
+
+    this.subscriptions.add(
+      this.applicationService.getMyApplications().subscribe({
+        next: (response: any) => {
+          if (response.success && response.applications) {
+            this.userApplications.clear();
+            response.applications.forEach((app: any) => {
+              this.userApplications.set(app.mission_id, app.status);
+            });
+            console.log('✅ Candidatures chargées:', this.userApplications.size);
+          }
+        },
+        error: (error: any) => {
+          console.error('❌ Erreur chargement candidatures:', error);
+        }
+      })
+    );
+  }
+
+  // ==================== CONTRÔLES D'AUTORISATION ====================
+
+  /**
+   * ✅ Vérifie si l'utilisateur peut créer des missions (clients uniquement)
+   */
+  canCreateMission(): boolean {
+    const canCreate = this.isLoggedIn && this.authService.isClient();
+    console.log('🔍 Peut créer mission:', canCreate, 'Type:', this.currentUser?.user_type);
+    return canCreate;
+  }
+
+  /**
+   * ✅ Vérifie si l'utilisateur peut postuler à des missions (freelances uniquement)
+   */
+  canApplyToMission(): boolean {
+    const canApply = this.isLoggedIn && this.authService.isFreelance();
+    console.log('🔍 Peut postuler:', canApply, 'Type:', this.currentUser?.user_type);
+    return canApply;
+  }
+
+  /**
+   * ✅ Vérifie si l'utilisateur a déjà postulé à une mission
+   */
+  hasUserApplied(missionId: string): boolean {
+    const hasApplied = this.userApplications.has(missionId);
+    console.log(`🔍 Déjà postulé à ${missionId}:`, hasApplied);
+    return hasApplied;
+  }
+
+  /**
+   * ✅ Récupère le statut de candidature de l'utilisateur pour une mission
+   */
+  getUserApplicationStatus(missionId: string): string | undefined {
+    return this.userApplications.get(missionId);
+  }
+
+  // ==================== GESTION DES CANDIDATURES ====================
+
+  /**
+   * ✅ Ouvre le modal de candidature avec toutes les vérifications
+   */
+  openApplicationModal(mission: Mission) {
+    console.log('🔍 Tentative de candidature à la mission:', mission.id);
+
+    // Vérification 1: Utilisateur connecté
+    if (!this.isLoggedIn) {
+      this.error = 'Vous devez être connecté pour postuler à une mission';
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    // Vérification 2: Utilisateur est freelance
+    if (!this.authService.isFreelance()) {
+      this.error = 'Seuls les freelances peuvent postuler à des missions';
+      console.log('❌ Tentative de candidature par un non-freelance');
+      return;
+    }
+
+    // Vérification 3: Pas déjà postulé
+    if (this.hasUserApplied(mission.id)) {
+      const status = this.getUserApplicationStatus(mission.id);
+      const statusLabel = this.getApplicationStatusLabel(status || '');
+      this.error = `Vous avez déjà postulé à cette mission (${statusLabel})`;
+      console.log('❌ Candidature déjà envoyée:', status);
+      return;
+    }
+
+    // Tout est OK, ouvrir le modal
+    this.selectedMissionForApplication = mission;
+    this.showApplicationModal = true;
+    this.error = ''; // Nettoyer les erreurs précédentes
+    console.log('✅ Modal de candidature ouvert');
+  }
+
+  closeApplicationModal() {
+    this.showApplicationModal = false;
+    this.selectedMissionForApplication = null;
+  }
+
+  onApplicationSent() {
+    console.log('✅ Candidature envoyée avec succès !');
+    this.loadUserApplications(); // Recharger les candidatures
+    this.closeApplicationModal();
+    
+    // Message de succès optionnel
+    this.error = ''; // Nettoyer les erreurs
+  }
+
+  applyToMission(mission: Mission) {
+    this.openApplicationModal(mission);
+  }
+
+  // ==================== GESTION DU MODAL D'AJOUT DE MISSION ====================
+
+  /**
+   * ✅ Ouvre le modal d'ajout avec toutes les vérifications
+   */
+  openAddMissionModal() {
+    console.log('🔍 Tentative d\'ouverture du modal d\'ajout...');
+    
+    // Vérification 1: Utilisateur connecté
+    if (!this.isLoggedIn) {
+      this.error = 'Vous devez être connecté pour publier une mission';
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    // Vérification 2: Utilisateur est client
+    if (!this.authService.isClient()) {
+      this.error = 'Seuls les clients peuvent publier des missions';
+      console.log('❌ Tentative de création par un non-client');
+      return;
+    }
+
+    // Tout est OK, ouvrir le modal
+    this.showAddMissionModal = true;
+    this.resetForm();
+    this.error = ''; // Nettoyer les erreurs précédentes
+    console.log('✅ Modal d\'ajout ouvert');
+  }
+
+  closeAddMissionModal() {
+    console.log('🔍 Fermeture du modal d\'ajout...');
+    this.showAddMissionModal = false;
+    this.resetForm();
+  }
+
+  resetForm() {
+    this.newMission = {
+      title: '',
+      description: '',
+      category: '',
+      budget: { min: 0, max: 0 },
+      deadline: '',
+      skills: [],
+      isUrgent: false
+    };
+    this.skillInput = '';
+    this.error = '';
+  }
+
+  onSubmitMission() {
+    console.log('🔍 Tentative de soumission de mission...');
+
+    // Double vérification de sécurité
+    if (!this.isLoggedIn) {
+      this.error = 'Vous devez être connecté pour publier une mission';
+      return;
+    }
+
+    if (!this.authService.isClient()) {
+      this.error = 'Seuls les clients peuvent publier des missions';
+      return;
+    }
+
+    if (!this.isFormValid()) {
+      this.error = 'Veuillez remplir tous les champs obligatoires correctement';
+      return;
+    }
+
+    if (this.newMission.budget.min > this.newMission.budget.max) {
+      this.error = 'Le budget minimum ne peut pas être supérieur au budget maximum';
+      return;
+    }
+
+    this.submitting = true;
+    this.error = '';
+
+    this.subscriptions.add(
+      this.missionService.createMission(this.newMission).subscribe({
+        next: (newMission: any) => {
+          console.log('✅ Mission créée avec succès:', newMission);
+          this.submitting = false;
+          this.closeAddMissionModal();
+          // Optionnel: message de succès
+        },
+        error: (error: any) => {
+          console.error('❌ Erreur création mission:', error);
+          this.submitting = false;
+          this.error = error.message || 'Erreur lors de la création de la mission';
+        }
+      })
+    );
+  }
+
+  // ==================== GESTION DES COMPÉTENCES ====================
+
+  addSkill() {
+    if (this.skillInput.trim() && !this.newMission.skills.includes(this.skillInput.trim())) {
+      this.newMission.skills.push(this.skillInput.trim());
+      this.skillInput = '';
+    }
+  }
+
+  removeSkill(index: number) {
+    this.newMission.skills.splice(index, 1);
+  }
+
+  // ==================== UTILITAIRES DE CANDIDATURE ====================
+
+  getApplicationStatusLabel(status: string): string {
+    const labels: { [key: string]: string } = {
+      'pending': 'En attente',
+      'accepted': 'Acceptée',
+      'rejected': 'Rejetée'
+    };
+    return labels[status] || status;
+  }
+
+  getApplicationStatusColor(status: string): string {
+    const colors: { [key: string]: string } = {
+      'pending': 'text-yellow-600 bg-yellow-100',
+      'accepted': 'text-green-600 bg-green-100',
+      'rejected': 'text-red-600 bg-red-100'
+    };
+    return colors[status] || 'text-gray-600 bg-gray-100';
+  }
+
+  // ==================== CHARGEMENT DES MISSIONS ====================
 
   loadMissions() {
     this.loading = true;
@@ -115,7 +372,6 @@ export class MissionsPage implements OnInit, OnDestroy {
       this.missionService.getMissions().subscribe({
         next: (missions) => {
           console.log('✅ Missions chargées:', missions.length);
-          console.log('📊 Catégories trouvées:', missions.map(m => ({ title: m.title, category: m.category })));
           this.loading = false;
         },
         error: (error) => {
@@ -128,14 +384,13 @@ export class MissionsPage implements OnInit, OnDestroy {
     );
   }
 
-  // Données de fallback en cas d'erreur réseau
   loadFallbackMissions() {
     this.missions = [
       {
         id: 'fallback-1',
         title: 'Mission de test (mode hors ligne)',
         description: 'Cette mission s\'affiche car le serveur n\'est pas accessible.',
-        category: 'development', // ✅ Correction : utiliser la valeur en minuscules
+        category: 'development',
         budget: { min: 500, max: 1000 },
         deadline: '2024-07-15',
         clientName: 'Client Test',
@@ -151,23 +406,17 @@ export class MissionsPage implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
-  // ✅ CORRECTION : Améliorer updateCategoryCounts avec logs
+  // ==================== FILTRAGE ET RECHERCHE ====================
+
   updateCategoryCounts() {
-    console.log('🔄 Mise à jour des comptes de catégories...');
-    
     this.categories.forEach(cat => {
       if (cat.value === 'all') {
         cat.count = this.missions.length;
       } else {
         const matchingMissions = this.missions.filter(m => m.category === cat.value);
         cat.count = matchingMissions.length;
-        
-        console.log(`📊 Catégorie "${cat.value}": ${cat.count} missions`, 
-          matchingMissions.map(m => m.title));
       }
     });
-    
-    console.log('✅ Comptes mis à jour:', this.categories.map(c => ({ label: c.label, count: c.count })));
   }
 
   applyFilters() {
@@ -182,12 +431,6 @@ export class MissionsPage implements OnInit, OnDestroy {
       const matchesDeadline = this.matchesDeadlineFilter(mission);
 
       return matchesCategory && matchesSearch && matchesBudget && matchesDeadline;
-    });
-    
-    console.log('🔍 Filtrage:', {
-      selectedCategory: this.selectedCategory,
-      totalMissions: this.missions.length,
-      filteredMissions: this.filteredMissions.length
     });
   }
 
@@ -218,8 +461,9 @@ export class MissionsPage implements OnInit, OnDestroy {
     }
   }
 
+  // ==================== GESTIONNAIRES D'ÉVÉNEMENTS ====================
+
   onCategoryChange(category: string) {
-    console.log('🏷️ Changement catégorie:', category);
     this.selectedCategory = category;
     this.applyFilters();
   }
@@ -248,155 +492,12 @@ export class MissionsPage implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
-  // ✅ NOUVEAU : Méthode de debug pour catégories
-  debugCategories() {
-    console.log('🐛 DEBUG CATÉGORIES:');
-    console.log('📊 Missions totales:', this.missions.length);
-    console.log('📊 Missions filtrées:', this.filteredMissions.length);
-    console.log('🏷️ Catégorie sélectionnée:', this.selectedCategory);
-    
-    const categoryBreakdown = this.missions.reduce((acc, mission) => {
-      const cat = mission.category || 'undefined';
-      acc[cat] = (acc[cat] || 0) + 1;
-      return acc;
-    }, {} as any);
-    
-    console.log('📈 Répartition réelle des catégories:', categoryBreakdown);
-    
-    this.categories.forEach(cat => {
-      const realCount = this.missions.filter(m => 
-        cat.value === 'all' ? true : m.category === cat.value
-      ).length;
-      console.log(`🏷️ ${cat.label}: affiché=${cat.count}, réel=${realCount}`);
-    });
-  }
-
-  // Méthodes pour le modal d'ajout de mission
-  openAddMissionModal() {
-    if (!this.isLoggedIn) {
-      this.error = 'Vous devez être connecté pour publier une mission';
-      this.router.navigate(['/auth/login']);
-      return;
-    }
-
-    if (!this.authService.isClient()) {
-      this.error = 'Seuls les clients peuvent publier des missions';
-      return;
-    }
-
-    this.showAddMissionModal = true;
-    this.resetForm();
-  }
-
-  closeAddMissionModal() {
-    this.showAddMissionModal = false;
-    this.resetForm();
-  }
-
-  resetForm() {
-    this.newMission = {
-      title: '',
-      description: '',
-      category: '',
-      budget: { min: 0, max: 0 },
-      deadline: '',
-      skills: [],
-      isUrgent: false
-    };
-    this.skillInput = '';
-    this.error = '';
-  }
-
-  addSkill() {
-    if (this.skillInput.trim() && !this.newMission.skills.includes(this.skillInput.trim())) {
-      this.newMission.skills.push(this.skillInput.trim());
-      this.skillInput = '';
-    }
-  }
-
-  removeSkill(index: number) {
-    this.newMission.skills.splice(index, 1);
-  }
-
-  getCurrentDate(): string {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  }
-
-  isFormValid(): boolean {
-    return !!(
-      this.newMission.title.trim() &&
-      this.newMission.description.trim() &&
-      this.newMission.category &&
-      this.newMission.budget.min > 0 &&
-      this.newMission.budget.max > 0 &&
-      this.newMission.deadline &&
-      this.newMission.budget.min <= this.newMission.budget.max
-    );
-  }
-
-  onSubmitMission() {
-    if (!this.isLoggedIn) {
-      this.error = 'Vous devez être connecté pour publier une mission';
-      return;
-    }
-
-    if (!this.isFormValid()) {
-      this.error = 'Veuillez remplir tous les champs obligatoires correctement';
-      return;
-    }
-
-    if (this.newMission.budget.min > this.newMission.budget.max) {
-      this.error = 'Le budget minimum ne peut pas être supérieur au budget maximum';
-      return;
-    }
-
-    this.submitting = true;
-    this.error = '';
-
-    console.log('📤 Envoi nouvelle mission:', this.newMission);
-
-    this.subscriptions.add(
-      this.missionService.createMission(this.newMission).subscribe({
-        next: (newMission) => {
-          console.log('✅ Mission créée avec succès:', newMission);
-          this.submitting = false;
-          this.closeAddMissionModal();
-          this.showSuccessMessage('Mission publiée avec succès !');
-        },
-        error: (error) => {
-          console.error('❌ Erreur création mission:', error);
-          this.submitting = false;
-          this.error = error.message || 'Erreur lors de la création de la mission';
-        }
-      })
-    );
-  }
-
-  showSuccessMessage(message: string) {
-    alert(message);
-  }
+  // ==================== NAVIGATION ====================
 
   viewMissionDetails(missionId: string) {
     this.router.navigate(['/tabs/missions/mission-details', missionId]);
   }
 
-  applyToMission(mission: Mission) {
-    if (!this.isLoggedIn) {
-      this.error = 'Vous devez être connecté pour postuler à une mission';
-      this.router.navigate(['/auth/login']);
-      return;
-    }
-
-    if (!this.authService.isFreelance()) {
-      this.error = 'Seuls les freelances peuvent postuler à des missions';
-      return;
-    }
-
-    this.router.navigate(['/apply-mission', mission.id]);
-  }
-
-  // Méthodes utilitaires liées à l'authentification
   login() {
     this.router.navigate(['/auth/login']);
   }
@@ -414,32 +515,23 @@ export class MissionsPage implements OnInit, OnDestroy {
     }
   }
 
-  getUserDisplayName(): string {
-    if (!this.currentUser) return '';
-    return `${this.currentUser.first_name} ${this.currentUser.last_name}`;
+  // ==================== UTILITAIRES ====================
+
+  getCurrentDate(): string {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
   }
 
-  getUserTypeLabel(): string {
-    if (!this.currentUser) return '';
-    
-    switch(this.currentUser.user_type) {
-      case 'freelance': return 'Freelance';
-      case 'client': return 'Client';
-      case 'admin': return 'Administrateur';
-      default: return '';
-    }
-  }
-
-  canCreateMission(): boolean {
-    return this.isLoggedIn && this.authService.isClient();
-  }
-
-  canApplyToMission(): boolean {
-    return this.isLoggedIn && this.authService.isFreelance();
-  }
-
-  canViewMissionDetails(): boolean {
-    return this.isLoggedIn;
+  isFormValid(): boolean {
+    return !!(
+      this.newMission.title.trim() &&
+      this.newMission.description.trim() &&
+      this.newMission.category &&
+      this.newMission.budget.min > 0 &&
+      this.newMission.budget.max > 0 &&
+      this.newMission.deadline &&
+      this.newMission.budget.min <= this.newMission.budget.max
+    );
   }
 
   formatBudget(budget: { min: number; max: number }): string {
@@ -471,14 +563,12 @@ export class MissionsPage implements OnInit, OnDestroy {
     }
   }
 
-  // ✅ CORRECTION : Adapter aux nouvelles valeurs de catégories
   getCategoryIcon(category: string): string {
     const icons: { [key: string]: string } = {
       'design': '🎨',
       'development': '💻',
       'marketing': '📈',
       'writing': '✍️',
-      // Rétrocompatibilité avec les anciennes valeurs
       'Design': '🎨',
       'Développement': '💻',
       'Marketing': '📈',
@@ -499,9 +589,22 @@ export class MissionsPage implements OnInit, OnDestroy {
 
   refreshMissions() {
     this.loadMissions();
+    this.loadUserApplications();
   }
 
-  getConnectionStatus(): string {
-    return navigator.onLine ? 'En ligne' : 'Hors ligne';
+  getUserDisplayName(): string {
+    if (!this.currentUser) return '';
+    return `${this.currentUser.first_name} ${this.currentUser.last_name}`;
+  }
+
+  getUserTypeLabel(): string {
+    if (!this.currentUser) return '';
+    
+    switch(this.currentUser.user_type) {
+      case 'freelance': return 'Freelance';
+      case 'client': return 'Client';
+      case 'admin': return 'Administrateur';
+      default: return '';
+    }
   }
 }

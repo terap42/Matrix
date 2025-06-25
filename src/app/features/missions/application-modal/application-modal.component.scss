@@ -1,0 +1,33 @@
+// src/app/features/missions/components/application-modal/application-modal.component.scss
+
+ion-modal {
+  --width: 90%;
+  --height: 80%;
+  --border-radius: 16px;
+}
+
+ion-card {
+  margin: 16px 0;
+}
+
+ion-item {
+  margin: 8px 0;
+}
+
+ion-note {
+  display: block;
+  margin: 4px 16px 16px 16px;
+  font-size: 12px;
+}
+
+// Debug card styling
+ion-card[color="light"] {
+  --background: #f8f9fa;
+  border: 1px solid #dee2e6;
+}
+
+ion-card[color="light"] p {
+  margin: 4px 0;
+  font-size: 13px;
+  font-family: monospace;
+}

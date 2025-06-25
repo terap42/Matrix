@@ -1,17 +1,24 @@
 import { Component, OnInit } from '@angular/core';
 import { ToastController, LoadingController, AlertController } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 interface Skill {
+  id?: number;
   name: string;
   level: 'debutant' | 'intermediaire' | 'avance' | 'expert';
 }
 
 interface Project {
+  id?: string;
   title: string;
   description: string;
   imageUrl: string;
   projectUrl: string;
+  technologies: string[];
+  technologiesString?: string; // Helper pour l'input
+  createdAt?: string;
+  isNew?: boolean; // Pour identifier les nouveaux projets
 }
 
 interface FreelanceProfile {
@@ -41,6 +48,8 @@ interface FreelanceProfile {
 })
 export class FreelanceProfilePage implements OnInit {
   
+  private apiUrl = 'http://localhost:3000/api';
+  
   profile: FreelanceProfile = {
     fullName: '',
     title: '',
@@ -57,12 +66,14 @@ export class FreelanceProfilePage implements OnInit {
   };
 
   isSaving: boolean = false;
+  isLoading: boolean = false;
 
   constructor(
     private toastController: ToastController,
     private loadingController: LoadingController,
     private alertController: AlertController,
-    private router: Router
+    private router: Router,
+    private http: HttpClient
   ) { }
 
   ngOnInit() {
@@ -70,61 +81,80 @@ export class FreelanceProfilePage implements OnInit {
   }
 
   /**
+   * Récupère les headers avec le token d'authentification
+   */
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('authToken');
+    console.log('🔐 Token récupéré:', token ? 'Présent' : 'Absent');
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+  }
+
+  /**
    * Charge le profil existant depuis l'API
    */
   async loadProfile() {
+    this.isLoading = true;
     const loading = await this.loadingController.create({
       message: 'Chargement du profil...',
-      duration: 2000
+      duration: 10000
     });
     
     await loading.present();
 
     try {
-      // Simuler un appel API - remplacez par votre service réel
-      // const response = await this.profileService.getProfile();
+      const headers = this.getAuthHeaders();
+      console.log('📡 Chargement profil...');
       
-      // Données d'exemple pour la démonstration
-      const mockProfile = {
-        fullName: 'Alexandre Martin',
-        title: 'Développeur Full-Stack & Designer UI/UX',
-        bio: 'Développeur passionné avec 5 ans d\'expérience en React, Node.js et design UI/UX. Spécialisé dans la création d\'applications web modernes et intuitives.',
-        hourlyRate: 350,
-        availability: true,
-        experienceYears: 5,
-        completedMissions: 42,
-        averageRating: 4.8,
-        totalEarnings: 125000,
-        responseTimeHours: 24,
-        skills: [
-          { name: 'React', level: 'expert' as const },
-          { name: 'Node.js', level: 'avance' as const },
-          { name: 'TypeScript', level: 'avance' as const },
-          { name: 'UI/UX Design', level: 'intermediaire' as const }
-        ],
-        portfolio: [
-          {
-            title: 'Application E-commerce',
-            description: 'Développement d\'une plateforme e-commerce complète avec React et Node.js',
-            imageUrl: 'https://example.com/project1.jpg',
-            projectUrl: 'https://example.com/project1'
-          }
-        ]
-      };
+      const response: any = await this.http.get(
+        `${this.apiUrl}/freelance-profile`,
+        { headers }
+      ).toPromise();
 
-      // Charger les données existantes ou utiliser les données par défaut
-      this.profile = { ...this.profile, ...mockProfile };
+      console.log('📥 Réponse API profil:', response);
+
+      if (response && response.success && response.profile) {
+        this.profile = { ...this.profile, ...response.profile };
+        
+        // Convertir les technologies en string pour l'affichage
+        if (this.profile.portfolio && Array.isArray(this.profile.portfolio)) {
+          this.profile.portfolio.forEach(project => {
+            if (project.technologies && Array.isArray(project.technologies)) {
+              project.technologiesString = project.technologies.join(', ');
+            }
+          });
+        }
+        
+        console.log('✅ Profil chargé:', this.profile);
+        
+        // Charger les stats également
+        await this.loadStats();
+      } else {
+        this.showToast('Erreur lors du chargement du profil', 'warning');
+      }
       
+    } catch (error: any) {
+      console.error('❌ Erreur chargement profil:', error);
+      
+      if (error.status === 401) {
+        this.showToast('Session expirée, veuillez vous reconnecter', 'danger');
+        this.router.navigate(['/login']);
+      } else if (error.status === 403) {
+        this.showToast('Accès réservé aux freelances', 'warning');
+        this.router.navigate(['/tabs/dashboard']);
+      } else {
+        this.showToast('Erreur lors du chargement du profil', 'danger');
+      }
+    } finally {
+      this.isLoading = false;
       await loading.dismiss();
-    } catch (error) {
-      await loading.dismiss();
-      this.showToast('Erreur lors du chargement du profil', 'danger');
-      console.error('Erreur de chargement:', error);
     }
   }
 
   /**
-   * Sauvegarde le profil
+   * Sauvegarde le profil - VERSION CORRIGÉE
    */
   async saveProfile() {
     if (!this.validateProfile()) {
@@ -132,50 +162,214 @@ export class FreelanceProfilePage implements OnInit {
     }
 
     this.isSaving = true;
+    
+    const loading = await this.loadingController.create({
+      message: 'Sauvegarde en cours...',
+      duration: 10000
+    });
+    
+    await loading.present();
 
     try {
-      // Simuler un appel API - remplacez par votre service réel
-      // await this.profileService.updateProfile(this.profile);
+      console.log('💾 Début sauvegarde profil...');
       
-      // Simulation d'un délai de sauvegarde
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // 1. Sauvegarder d'abord le profil principal
+      const headers = this.getAuthHeaders();
       
-      this.showToast('Profil sauvegardé avec succès !', 'success');
-    } catch (error) {
-      this.showToast('Erreur lors de la sauvegarde', 'danger');
-      console.error('Erreur de sauvegarde:', error);
+      const profileData = {
+        fullName: this.profile.fullName,
+        title: this.profile.title,
+        bio: this.profile.bio,
+        hourlyRate: this.profile.hourlyRate,
+        availability: this.profile.availability,
+        experienceYears: this.profile.experienceYears,
+        responseTimeHours: this.profile.responseTimeHours,
+        skills: this.profile.skills
+      };
+      
+      console.log('📤 Données profil à sauvegarder:', profileData);
+      
+      const response: any = await this.http.put(
+        `${this.apiUrl}/freelance-profile`,
+        profileData,
+        { headers }
+      ).toPromise();
+
+      console.log('📥 Réponse sauvegarde profil:', response);
+
+      if (response && response.success) {
+        console.log('✅ Profil principal sauvegardé');
+        
+        // 2. Sauvegarder les projets du portfolio séparément
+        await this.savePortfolioProjects();
+        
+        this.showToast('Profil sauvegardé avec succès !', 'success');
+        
+        // 3. Recharger le profil pour avoir les données à jour
+        await this.loadProfile();
+      } else {
+        throw new Error(response?.message || 'Erreur de sauvegarde');
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Erreur sauvegarde:', error);
+      
+      if (error.status === 401) {
+        this.showToast('Session expirée, veuillez vous reconnecter', 'danger');
+        this.router.navigate(['/login']);
+      } else if (error.status === 400) {
+        this.showToast(error.error?.message || 'Données invalides', 'warning');
+      } else {
+        this.showToast('Erreur lors de la sauvegarde: ' + (error.error?.message || error.message), 'danger');
+      }
     } finally {
       this.isSaving = false;
+      await loading.dismiss();
     }
+  }
+
+  /**
+   * Sauvegarde les projets du portfolio - VERSION CORRIGÉE
+   */
+  private async savePortfolioProjects() {
+    console.log('📁 Début sauvegarde portfolio...');
+    const headers = this.getAuthHeaders();
+    
+    if (!this.profile.portfolio || this.profile.portfolio.length === 0) {
+      console.log('📋 Aucun projet à sauvegarder');
+      return;
+    }
+    
+    for (let i = 0; i < this.profile.portfolio.length; i++) {
+      const project = this.profile.portfolio[i];
+      
+      // Convertir les technologies string en array si nécessaire
+      if (project.technologiesString && typeof project.technologiesString === 'string') {
+        project.technologies = project.technologiesString
+          .split(',')
+          .map(tech => tech.trim())
+          .filter(tech => tech.length > 0);
+      }
+      
+      const projectData = {
+        title: project.title,
+        description: project.description,
+        imageUrl: project.imageUrl || '',
+        projectUrl: project.projectUrl || '',
+        technologies: project.technologies || []
+      };
+      
+      try {
+        console.log(`📤 Sauvegarde projet ${i + 1}:`, projectData);
+        
+        if (project.id && !project.isNew) {
+          // Mettre à jour le projet existant
+          console.log(`🔄 Mise à jour projet existant ${project.id}`);
+          
+          const response: any = await this.http.put(
+            `${this.apiUrl}/freelance-profile/portfolio/${project.id}`,
+            projectData,
+            { headers }
+          ).toPromise();
+          
+          console.log(`✅ Projet ${project.id} mis à jour:`, response);
+          
+        } else {
+          // Créer un nouveau projet
+          console.log('➕ Création nouveau projet');
+          
+          const response: any = await this.http.post(
+            `${this.apiUrl}/freelance-profile/portfolio`,
+            projectData,
+            { headers }
+          ).toPromise();
+          
+          console.log('✅ Nouveau projet créé:', response);
+          
+          if (response && response.success && response.project) {
+            project.id = response.project.id;
+            project.isNew = false; // Marquer comme non-nouveau
+          }
+        }
+        
+      } catch (error: any) {
+        console.error(`❌ Erreur sauvegarde projet ${i + 1}:`, error);
+        
+        // Ne pas arrêter tout le processus pour un projet qui échoue
+        if (error.status === 404) {
+          console.log(`⚠️ Projet ${project.id} non trouvé, tentative de création...`);
+          
+          try {
+            // Essayer de créer le projet si la mise à jour échoue
+            const createResponse: any = await this.http.post(
+              `${this.apiUrl}/freelance-profile/portfolio`,
+              projectData,
+              { headers }
+            ).toPromise();
+            
+            if (createResponse && createResponse.success && createResponse.project) {
+              project.id = createResponse.project.id;
+              project.isNew = false;
+              console.log('✅ Projet recréé avec succès');
+            }
+          } catch (createError) {
+            console.error('❌ Échec création projet:', createError);
+          }
+        }
+      }
+    }
+    
+    console.log('✅ Sauvegarde portfolio terminée');
   }
 
   /**
    * Valide les données du profil
    */
   private validateProfile(): boolean {
-    if (!this.profile.fullName.trim()) {
+    if (!this.profile.fullName || !this.profile.fullName.trim()) {
       this.showToast('Le nom complet est requis', 'warning');
       return false;
     }
 
-    if (!this.profile.title.trim()) {
+    if (!this.profile.title || !this.profile.title.trim()) {
       this.showToast('Le titre professionnel est requis', 'warning');
       return false;
     }
 
-    if (!this.profile.bio.trim()) {
+    if (!this.profile.bio || !this.profile.bio.trim()) {
       this.showToast('La bio est requise', 'warning');
       return false;
     }
 
-    if (this.profile.hourlyRate <= 0) {
-      this.showToast('Le tarif horaire doit être supérieur à 0', 'warning');
+    if (this.profile.hourlyRate < 0) {
+      this.showToast('Le tarif horaire ne peut pas être négatif', 'warning');
       return false;
     }
 
     if (this.profile.experienceYears < 0) {
       this.showToast('Les années d\'expérience ne peuvent pas être négatives', 'warning');
       return false;
+    }
+
+    // Validation des compétences
+    for (const skill of this.profile.skills) {
+      if (!skill.name || !skill.name.trim()) {
+        this.showToast('Toutes les compétences doivent avoir un nom', 'warning');
+        return false;
+      }
+    }
+
+    // Validation des projets
+    for (const project of this.profile.portfolio) {
+      if (!project.title || !project.title.trim()) {
+        this.showToast('Tous les projets doivent avoir un titre', 'warning');
+        return false;
+      }
+      
+      if (!project.description || !project.description.trim()) {
+        this.showToast('Tous les projets doivent avoir une description', 'warning');
+        return false;
+      }
     }
 
     return true;
@@ -187,17 +381,20 @@ export class FreelanceProfilePage implements OnInit {
   addSkill() {
     this.profile.skills.push({
       name: '',
-      level: 'debutant'
+      level: 'intermediaire'
     });
+    console.log('➕ Nouvelle compétence ajoutée');
   }
 
   /**
    * Supprime une compétence
    */
   async removeSkill(index: number) {
+    const skill = this.profile.skills[index];
+    
     const alert = await this.alertController.create({
       header: 'Confirmer la suppression',
-      message: 'Êtes-vous sûr de vouloir supprimer cette compétence ?',
+      message: `Êtes-vous sûr de vouloir supprimer la compétence "${skill.name || 'Sans nom'}" ?`,
       buttons: [
         {
           text: 'Annuler',
@@ -206,8 +403,25 @@ export class FreelanceProfilePage implements OnInit {
         {
           text: 'Supprimer',
           role: 'destructive',
-          handler: () => {
-            this.profile.skills.splice(index, 1);
+          handler: async () => {
+            try {
+              // Si la compétence a un ID, la supprimer du serveur
+              if (skill.id) {
+                const headers = this.getAuthHeaders();
+                await this.http.delete(
+                  `${this.apiUrl}/freelance-profile/skills/${skill.id}`,
+                  { headers }
+                ).toPromise();
+                console.log(`✅ Compétence ${skill.id} supprimée du serveur`);
+              }
+              
+              // Supprimer de la liste locale
+              this.profile.skills.splice(index, 1);
+              this.showToast('Compétence supprimée', 'success');
+            } catch (error) {
+              console.error('❌ Erreur suppression compétence:', error);
+              this.showToast('Erreur lors de la suppression', 'danger');
+            }
           }
         }
       ]
@@ -224,17 +438,23 @@ export class FreelanceProfilePage implements OnInit {
       title: '',
       description: '',
       imageUrl: '',
-      projectUrl: ''
+      projectUrl: '',
+      technologies: [],
+      technologiesString: '',
+      isNew: true // Marquer comme nouveau
     });
+    console.log('➕ Nouveau projet ajouté');
   }
 
   /**
    * Supprime un projet
    */
   async removeProject(index: number) {
+    const project = this.profile.portfolio[index];
+    
     const alert = await this.alertController.create({
       header: 'Confirmer la suppression',
-      message: 'Êtes-vous sûr de vouloir supprimer ce projet ?',
+      message: `Êtes-vous sûr de vouloir supprimer le projet "${project.title || 'Sans titre'}" ?`,
       buttons: [
         {
           text: 'Annuler',
@@ -243,8 +463,25 @@ export class FreelanceProfilePage implements OnInit {
         {
           text: 'Supprimer',
           role: 'destructive',
-          handler: () => {
-            this.profile.portfolio.splice(index, 1);
+          handler: async () => {
+            try {
+              // Si le projet a un ID, le supprimer du serveur
+              if (project.id && !project.isNew) {
+                const headers = this.getAuthHeaders();
+                await this.http.delete(
+                  `${this.apiUrl}/freelance-profile/portfolio/${project.id}`,
+                  { headers }
+                ).toPromise();
+                console.log(`✅ Projet ${project.id} supprimé du serveur`);
+              }
+              
+              // Supprimer de la liste locale
+              this.profile.portfolio.splice(index, 1);
+              this.showToast('Projet supprimé', 'success');
+            } catch (error) {
+              console.error('❌ Erreur suppression projet:', error);
+              this.showToast('Erreur lors de la suppression', 'danger');
+            }
           }
         }
       ]
@@ -273,7 +510,7 @@ export class FreelanceProfilePage implements OnInit {
   private async showToast(message: string, color: 'success' | 'warning' | 'danger' = 'success') {
     const toast = await this.toastController.create({
       message,
-      duration: 3000,
+      duration: 4000,
       position: 'top',
       color,
       buttons: [
@@ -301,6 +538,100 @@ export class FreelanceProfilePage implements OnInit {
       case 'messages':
         this.router.navigate(['/tabs/messages']);
         break;
+    }
+  }
+
+  /**
+   * Récupère les statistiques du freelance
+   */
+  async loadStats() {
+    try {
+      console.log('📊 Chargement des statistiques...');
+      const headers = this.getAuthHeaders();
+      
+      const response: any = await this.http.get(
+        `${this.apiUrl}/freelance-profile/stats`,
+        { headers }
+      ).toPromise();
+
+      console.log('📥 Réponse stats:', response);
+
+      if (response && response.success && response.stats) {
+        this.profile.completedMissions = response.stats.completed_missions;
+        this.profile.averageRating = response.stats.average_rating;
+        this.profile.totalEarnings = response.stats.total_earnings;
+        this.profile.responseTimeHours = response.stats.response_time_hours;
+        console.log('✅ Statistiques chargées');
+      }
+    } catch (error) {
+      console.error('❌ Erreur chargement stats:', error);
+    }
+  }
+
+  /**
+   * Rafraîchit les données
+   */
+  async refreshData() {
+    console.log('🔄 Rafraîchissement des données...');
+    await this.loadProfile();
+  }
+
+  /**
+   * Sauvegarde un projet individuel (pour les modifications en temps réel)
+   */
+  async saveProjectIndividually(project: Project, index: number) {
+    if (!project.title || !project.description) {
+      this.showToast('Titre et description requis', 'warning');
+      return;
+    }
+
+    try {
+      const headers = this.getAuthHeaders();
+      
+      // Convertir technologies si nécessaire
+      if (project.technologiesString) {
+        project.technologies = project.technologiesString
+          .split(',')
+          .map(tech => tech.trim())
+          .filter(tech => tech.length > 0);
+      }
+
+      const projectData = {
+        title: project.title,
+        description: project.description,
+        imageUrl: project.imageUrl || '',
+        projectUrl: project.projectUrl || '',
+        technologies: project.technologies || []
+      };
+
+      if (project.id && !project.isNew) {
+        // Mettre à jour
+        const response: any = await this.http.put(
+          `${this.apiUrl}/freelance-profile/portfolio/${project.id}`,
+          projectData,
+          { headers }
+        ).toPromise();
+        
+        if (response.success) {
+          this.showToast('Projet mis à jour', 'success');
+        }
+      } else {
+        // Créer
+        const response: any = await this.http.post(
+          `${this.apiUrl}/freelance-profile/portfolio`,
+          projectData,
+          { headers }
+        ).toPromise();
+        
+        if (response.success && response.project) {
+          project.id = response.project.id;
+          project.isNew = false;
+          this.showToast('Projet créé', 'success');
+        }
+      }
+    } catch (error: any) {
+      console.error('❌ Erreur sauvegarde projet:', error);
+      this.showToast('Erreur lors de la sauvegarde du projet', 'danger');
     }
   }
 }
